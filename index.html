@@ -676,18 +676,14 @@
         function undo() {
             if (!gameStarted) return;
             
-            if (selectedOperators.length > 0) {
-                selectedOperators.pop();
-                updateExpression();
-                return;
-            }
-            
-            if (selectedNumbers.length > 0) {
+            if (selectedNumbers.length > selectedOperators.length) {
                 const lastIdx = selectedNumbers.pop();
                 currentNumbers[lastIdx].used = false;
                 renderNumbers();
-                updateExpression();
+            } else if (selectedOperators.length > 0) {
+                selectedOperators.pop();
             }
+            updateExpression();
         }
 
         function clearAll() {
