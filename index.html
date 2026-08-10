@@ -645,7 +645,8 @@
             maxTime: 60,
             isPractice: false,
             currentPuzzleIndex: 0,
-            solvedPuzzles: []
+            solvedPuzzles: [],
+            started: false
         };
 
         let currentNumbers = [];
@@ -806,7 +807,7 @@
         }
 
         function selectNumber(idx) {
-            if (!gameState.score >= 0 || currentNumbers[idx].used) return;
+            if (!gameState.started || currentNumbers[idx].used) return;
             playSound('select');
             
             if (selectedNumbers.includes(idx)) {
@@ -826,7 +827,7 @@
         }
 
         function selectOperator(op) {
-            if (!gameState.score >= 0) return;
+            if (!gameState.started) return;
             playSound('operator');
             
             if (selectedOperators.length < 3) {
@@ -854,7 +855,7 @@
         }
 
         function undo() {
-            if (!gameState.score >= 0) return;
+            if (!gameState.started) return;
             
             if (selectedNumbers.length > selectedOperators.length) {
                 const lastIdx = selectedNumbers.pop();
@@ -902,7 +903,7 @@
         }
 
         function submit() {
-            if (!gameState.score >= 0) return;
+            if (!gameState.started) return;
             
             const result = evaluateExpression();
             
@@ -972,6 +973,7 @@
         function startGame() {
             document.getElementById('modeModal').classList.remove('active');
             
+            gameState.started = true;
             gameState.timer = getTimerForLevel();
             gameState.maxTime = gameState.timer;
             
@@ -1084,7 +1086,8 @@
                 maxTime: 60,
                 isPractice: false,
                 currentPuzzleIndex: 0,
-                solvedPuzzles: []
+                solvedPuzzles: [],
+                started: false
             };
             showModeSelect();
         }
