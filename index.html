@@ -633,7 +633,10 @@
                 selectedNumbers = selectedNumbers.filter(i => i !== idx);
                 currentNumbers[idx].used = false;
             } else {
-                if (selectedNumbers.length < 3) {
+                const expectedOps = selectedNumbers.length > 0 ? selectedNumbers.length - 1 : 0;
+                if (selectedOperators.length < expectedOps) return;
+                
+                if (selectedNumbers.length < 4) {
                     selectedNumbers.push(idx);
                     currentNumbers[idx].used = true;
                 }
@@ -728,6 +731,17 @@
             if (!gameStarted) return;
             
             const result = evaluateExpression();
+            
+            if (selectedNumbers.length !== 4 || selectedOperators.length !== 3) {
+                playSound('wrong');
+                document.getElementById('wrongResult').textContent = 'incomplete';
+                document.getElementById('failModal').classList.add('active');
+                document.querySelector('.game-area').classList.add('shake');
+                setTimeout(() => {
+                    document.querySelector('.game-area').classList.remove('shake');
+                }, 300);
+                return;
+            }
             
             if (result === 24) {
                 playSound('correct');
