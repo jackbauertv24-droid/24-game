@@ -62,17 +62,38 @@
             border-radius: 20px;
             box-shadow: var(--shadow);
             margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
-        .score-display, .timer-display, .level-display {
-            font-size: 14px;
+        .header-item {
+            font-size: 12px;
             font-weight: 600;
             color: var(--dark);
+            text-align: center;
         }
 
-        .score-display span, .timer-display span, .level-display span {
+        .header-item span {
             color: var(--primary);
-            font-size: 20px;
+            font-size: 18px;
+            display: block;
+        }
+
+        .multiplier {
+            color: var(--success) !important;
+        }
+
+        .streak {
+            color: var(--accent) !important;
+        }
+
+        .difficulty-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            text-transform: uppercase;
         }
 
         .game-area {
@@ -142,12 +163,6 @@
             word-break: break-all;
         }
 
-        .result {
-            font-size: 24px;
-            font-weight: 700;
-            margin-left: 12px;
-        }
-
         .result.correct {
             color: var(--success);
         }
@@ -182,9 +197,9 @@
             transform: scale(0.95);
         }
 
-        .operator-btn.selected {
-            background: var(--secondary);
-            color: white;
+        .operator-btn.disabled {
+            opacity: 0.3;
+            pointer-events: none;
         }
 
         .actions-row {
@@ -257,7 +272,7 @@
             border-radius: 24px;
             text-align: center;
             max-width: 90%;
-            width: 320px;
+            width: 340px;
             box-shadow: var(--shadow-lg);
             transform: scale(0.8);
             transition: all 0.3s ease;
@@ -288,6 +303,7 @@
             font-family: 'Fredoka', sans-serif;
             cursor: pointer;
             transition: all 0.2s ease;
+            margin: 6px;
         }
 
         .modal-btn.primary {
@@ -298,7 +314,36 @@
         .modal-btn.secondary {
             background: var(--light);
             color: var(--dark);
-            margin-top: 12px;
+        }
+
+        .mode-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            margin: 10px 0;
+            border: 3px solid var(--light);
+            border-radius: 16px;
+            background: white;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .mode-btn:hover, .mode-btn.selected {
+            border-color: var(--primary);
+            background: #FFF5F5;
+        }
+
+        .mode-btn small {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            font-weight: 400;
+            margin-top: 4px;
         }
 
         .hint-text {
@@ -316,34 +361,6 @@
             display: block;
         }
 
-        .level-complete {
-            animation: celebrate 0.5s ease;
-        }
-
-        @keyframes celebrate {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        .shake {
-            animation: shake 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.4s ease;
-        }
-
         .progress-bar {
             width: 100%;
             height: 6px;
@@ -359,19 +376,73 @@
             border-radius: 3px;
             transition: width 0.3s ease;
         }
+
+        .practice-notice {
+            background: var(--secondary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .shake {
+            animation: shake 0.3s ease;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 16px 0;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--light);
+            border-radius: 12px;
+            background: white;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .difficulty-btn.selected {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="game-container">
         <div class="header">
-            <div class="level-display">Level <span id="level">1</span></div>
-            <div class="timer-display">⏱️ <span id="timer">60</span>s</div>
-            <div class="score-display">Score <span id="score">0</span></div>
+            <div class="header-item">Level <span id="level">1</span></div>
+            <div class="header-item" id="difficultyContainer">
+                <span class="difficulty-badge" id="difficulty">EASY</span>
+            </div>
+            <div class="header-item" id="timerContainer">⏱️ <span id="timer">60</span>s</div>
+            <div class="header-item">Score <span id="score">0</span></div>
+            <div class="header-item streak">🔥 <span id="streak">0</span></div>
+            <div class="header-item multiplier">×<span id="multiplier">1.0</span></div>
         </div>
-        
+
         <div class="game-area">
-            <div class="progress-bar">
+            <div class="progress-bar" id="progressContainer">
                 <div class="progress-fill" id="progress" style="width: 100%"></div>
+            </div>
+
+            <div class="practice-notice" id="practiceNotice" style="display: none;">
+                🎯 Practice Mode - No Timer
             </div>
 
             <div class="numbers-row" id="numbers"></div>
@@ -396,11 +467,36 @@
         </div>
     </div>
 
-    <div class="modal" id="startModal">
+    <div class="modal" id="modeModal">
         <div class="modal-content">
             <h2>🎮 24 Game</h2>
-            <p>Use 4 numbers with +, −, ×, ÷ to make 24!</p>
-            <button class="modal-btn primary" id="startBtn">Start Game</button>
+            <p>Choose your game mode:</p>
+            
+            <button class="mode-btn selected" id="curatedBtn">
+                📚 Curated
+                <small>Pre-made puzzles sorted by difficulty</small>
+            </button>
+            
+            <button class="mode-btn" id="generatedBtn">
+                🎲 Generated
+                <small>Infinite puzzles with increasing difficulty</small>
+            </button>
+            
+            <button class="mode-btn" id="practiceBtn">
+                🎯 Practice
+                <small>No timer, unlimited hints</small>
+            </button>
+            
+            <div id="difficultySelect" style="display: none;">
+                <p style="margin-top: 16px;">Select Difficulty:</p>
+                <div class="difficulty-selector">
+                    <button class="difficulty-btn selected" data-diff="easy">Easy</button>
+                    <button class="difficulty-btn" data-diff="medium">Medium</button>
+                    <button class="difficulty-btn" data-diff="hard">Hard</button>
+                </div>
+            </div>
+            
+            <button class="modal-btn primary" id="startGameBtn" style="margin-top: 16px;">Start Game</button>
         </div>
     </div>
 
@@ -428,27 +524,141 @@
         </div>
     </div>
 
+    <div class="modal" id="completeModal">
+        <div class="modal-content">
+            <h2>🏆 Completed!</h2>
+            <p>You've completed all puzzles in this difficulty!</p>
+            <button class="modal-btn primary" id="completeBtn">Back to Menu</button>
+        </div>
+    </div>
+
     <script>
         const OPERATORS = ['+', '−', '×', '÷'];
-        const TIMER_DURATION = 60;
+        
+        const CURATED_PUZZLES = {
+            easy: [
+                { nums: [1, 2, 3, 4], hint: "2+3=5, 5+4=9... try different!" },
+                { nums: [2, 2, 4, 4], hint: "4-2=2, 2+2=4, 4×4=16..." },
+                { nums: [1, 1, 1, 4], hint: "4+1=5, 5×... wait!" },
+                { nums: [3, 3, 5, 5], hint: "5×5=25, 25-3=22, 22+3=25..." },
+                { nums: [1, 2, 6, 7], hint: "7-1=6, 6×6=... no!" },
+                { nums: [2, 3, 4, 5], hint: "3+5=8, 8×... close!" },
+                { nums: [1, 3, 4, 6], hint: "6÷3=2, 4×2=8, 8×3=24!" },
+                { nums: [2, 4, 4, 5], hint: "5+4=9, 9+4=... no" },
+                { nums: [1, 5, 5, 5], hint: "5×5=25, 25-5=20, 20+... " },
+                { nums: [3, 3, 3, 3], hint: "3+3=6, 6×6=36, 36÷... " },
+                { nums: [1, 2, 2, 4], hint: "4+2=6, 6×2=12, 12×2=24!" },
+                { nums: [1, 3, 3, 4], hint: "4×3=12, 12×3=... wait" },
+                { nums: [2, 2, 3, 5], hint: "5×3=15, 15+... " },
+                { nums: [1, 4, 4, 4], hint: "4×4=16, 16+4=20..." },
+                { nums: [2, 3, 3, 4], hint: "3×4=12, 12+... " },
+                { nums: [1, 2, 7, 8], hint: "7+8=15, 15×... " },
+                { nums: [2, 2, 6, 6], hint: "6+6=12, 12+... " },
+                { nums: [3, 4, 4, 4], hint: "4×4=16, 16+... " },
+                { nums: [1, 6, 6, 6], hint: "6+6=12, 12+... " },
+                { nums: [2, 5, 5, 5], hint: "5+5=10, 10×... " },
+                { nums: [3, 3, 4, 6], hint: "6-3=3, 4×3=12, 12×2=24" },
+                { nums: [1, 1, 2, 8], hint: "8+2=10, 10+... " },
+                { nums: [2, 3, 6, 6], hint: "6÷2=3, 3×... " },
+                { nums: [1, 4, 5, 6], hint: "5+6=11, 11×... " },
+                { nums: [3, 5, 5, 5], hint: "5+5=10, 10+... " },
+                { nums: [2, 4, 6, 8], hint: "8÷4=2, 6×2=12, 12×2=24" },
+                { nums: [1, 1, 3, 6], hint: "6+3=9, 9+... " },
+                { nums: [2, 2, 5, 6], hint: "6+5=11, 11+... " },
+                { nums: [1, 5, 6, 6], hint: "6÷6=1, 5×... " },
+                { nums: [4, 4, 4, 4], hint: "4+4=8, 8×... " }
+            ],
+            medium: [
+                { nums: [3, 5, 7, 8], hint: "8÷4=2, 3×2=6, 6×4=24" },
+                { nums: [4, 5, 6, 7], hint: "7-5=2, 6÷2=3, 4×3=12, 12×2=24" },
+                { nums: [5, 6, 7, 8], hint: "6×5=30, 30-8=22, 22+... " },
+                { nums: [3, 6, 7, 9], hint: "9÷3=3, 7-3=4, 6×4=24" },
+                { nums: [4, 6, 7, 9], hint: "9-7=2, 6÷2=3, 4×3=12, 12×2=24" },
+                { nums: [5, 7, 8, 9], hint: "9-7=2, 8÷2=4, 5×4=20, 20+4=24" },
+                { nums: [3, 4, 8, 9], hint: "9-8=1, 4-1=3, 3×8=24" },
+                { nums: [4, 5, 8, 9], hint: "9-5=4, 4×4=16, 16+8=24" },
+                { nums: [6, 7, 8, 9], hint: "8÷4=2, 7+... " },
+                { nums: [3, 7, 8, 9], hint: "9-7=2, 8÷2=4, 3×4=12, 12×2=24" },
+                { nums: [4, 6, 8, 9], hint: "9-8=1, 6-1=5, 4×5=20, 20+... " },
+                { nums: [5, 6, 8, 9], hint: "9-6=3, 8-3=5, 5×5=25, 25-... " },
+                { nums: [3, 5, 9, 9], hint: "9÷3=3, 5×3=15, 15+... " },
+                { nums: [4, 7, 8, 9], hint: "9-8=1, 7+1=8, 8×3=24" },
+                { nums: [6, 6, 8, 9], hint: "9-6=3, 8×3=24" },
+                { nums: [3, 4, 9, 10], hint: "10-4=6, 6÷3=2, 2×... " },
+                { nums: [4, 5, 9, 10], hint: "10-5=5, 5×... " },
+                { nums: [5, 7, 9, 10], hint: "10-7=3, 9÷3=3, 5×3=15, 15+... " },
+                { nums: [3, 8, 9, 10], hint: "10-8=2, 9-2=7, 7+... " },
+                { nums: [4, 6, 9, 10], hint: "10-6=4, 9-4=5, 5×... " },
+                { nums: [5, 6, 9, 10], hint: "10+6=16, 16+... " },
+                { nums: [7, 8, 9, 10], hint: "10-9=1, 8+... " },
+                { nums: [3, 4, 10, 11], hint: "11-10=1, 4-1=3, 3×... " },
+                { nums: [4, 6, 10, 11], hint: "11-6=5, 10-5=5, 5×... " },
+                { nums: [5, 7, 10, 11], hint: "11-7=4, 10-4=6, 6×... " },
+                { nums: [6, 8, 10, 11], hint: "11-10=1, 8-1=7, 7+... " },
+                { nums: [3, 5, 11, 11], hint: "11-5=6, 11-6=5, 5×... " },
+                { nums: [4, 7, 11, 11], hint: "11-7=4, 11-4=7, 7+... " },
+                { nums: [5, 8, 11, 11], hint: "11-5=6, 11-6=5, 5×... " },
+                { nums: [6, 9, 11, 12], hint: "12-6=6, 9-6=3, 11-3=8, 8×... " }
+            ],
+            hard: [
+                { nums: [5, 8, 10, 12], hint: "12÷6=2, 10-2=8, 8×3=24" },
+                { nums: [6, 7, 10, 12], hint: "12÷4=3, 7+... " },
+                { nums: [7, 8, 11, 12], hint: "12-11=1, 8-1=7, 7+... " },
+                { nums: [6, 9, 10, 13], hint: "13-10=3, 9-3=6, 6×... " },
+                { nums: [7, 9, 11, 13], hint: "13-11=2, 9-2=7, 7+... " },
+                { nums: [8, 9, 12, 13], hint: "13-12=1, 9-1=8, 8×... " },
+                { nums: [6, 8, 11, 13], hint: "13-11=2, 8÷2=4, 6×4=24" },
+                { nums: [7, 10, 12, 13], hint: "13-12=1, 10+... " },
+                { nums: [8, 10, 11, 13], hint: "13-11=2, 10-2=8, 8×3=24" },
+                { nums: [9, 10, 11, 13], hint: "13-11=2, 10-2=8, 9-8=1, 24×1=24" },
+                { nums: [6, 7, 12, 13], hint: "13-12=1, 7-1=6, 6×4=24" },
+                { nums: [7, 8, 12, 13], hint: "13-12=1, 8-1=7, 7+... " },
+                { nums: [8, 9, 12, 13], hint: "13-12=1, 9-1=8, 8×... " },
+                { nums: [9, 10, 12, 13], hint: "13-12=1, 10-1=9, 9+... " },
+                { nums: [6, 11, 12, 13], hint: "13-12=1, 11-1=10, 10+... " },
+                { nums: [7, 10, 11, 13], hint: "13-11=2, 10-2=8, 8×... " },
+                { nums: [8, 10, 11, 12], hint: "12-11=1, 10-1=9, 9+... " },
+                { nums: [9, 10, 11, 12], hint: "12-11=1, 10-1=9, 9+... " },
+                { nums: [10, 11, 12, 13], hint: "13-12=1, 11-1=10, 10+... " },
+                { nums: [6, 9, 11, 12], hint: "12-11=1, 9-1=8, 8×... " },
+                { nums: [7, 8, 10, 12], hint: "12-10=2, 8-2=6, 6×4=24" },
+                { nums: [8, 9, 10, 11], hint: "11-10=1, 9-1=8, 8×... " },
+                { nums: [6, 8, 9, 12], hint: "12-8=4, 9-4=5, 5×... " },
+                { nums: [7, 9, 10, 12], hint: "12-10=2, 9-2=7, 7+... " },
+                { nums: [8, 10, 11, 12], hint: "12-11=1, 10-1=9, 9+... " },
+                { nums: [5, 10, 11, 12], hint: "12-11=1, 10+... " },
+                { nums: [6, 9, 10, 11], hint: "11-10=1, 9-1=8, 8×... " },
+                { nums: [7, 8, 9, 11], hint: "11-9=2, 8-2=6, 6×... " },
+                { nums: [8, 9, 10, 12], hint: "12-10=2, 9-2=7, 7+... " },
+                { nums: [6, 7, 9, 10], hint: "10-9=1, 7-1=6, 6×4=24" }
+            ]
+        };
+
+        let gameState = {
+            mode: 'curated',
+            difficulty: 'easy',
+            level: 1,
+            score: 0,
+            streak: 0,
+            multiplier: 1.0,
+            timer: 60,
+            maxTime: 60,
+            isPractice: false,
+            currentPuzzleIndex: 0,
+            solvedPuzzles: []
+        };
 
         let currentNumbers = [];
         let selectedNumbers = [];
         let selectedOperators = [];
-        let score = 0;
-        let level = 1;
-        let timer = TIMER_DURATION;
         let timerInterval = null;
-        let history = [];
-        let gameStarted = false;
+        let currentSolution = null;
 
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
 
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new AudioContext();
-            }
+            if (!audioCtx) audioCtx = new AudioContext();
         }
 
         function playTone(freq, duration, type = 'sine') {
@@ -467,37 +677,40 @@
         function playSound(type) {
             initAudio();
             switch(type) {
-                case 'select':
-                    playTone(600, 0.1);
-                    break;
-                case 'operator':
-                    playTone(800, 0.1);
-                    break;
+                case 'select': playTone(600, 0.1); break;
+                case 'operator': playTone(800, 0.1); break;
                 case 'correct':
                     playTone(523, 0.15);
                     setTimeout(() => playTone(659, 0.15), 100);
                     setTimeout(() => playTone(784, 0.2), 200);
                     break;
-                case 'wrong':
-                    playTone(200, 0.3, 'sawtooth');
-                    break;
-                case 'hint':
-                    playTone(400, 0.1);
-                    setTimeout(() => playTone(500, 0.1), 100);
-                    break;
+                case 'wrong': playTone(200, 0.3, 'sawtooth'); break;
+                case 'hint': playTone(400, 0.1); setTimeout(() => playTone(500, 0.1), 100); break;
             }
         }
 
         function generatePuzzle() {
-            const allNumbers = [1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,8,8,8,8,9,9,9,9,10,10,10,10,11,11,11,11,12,12,12,12,13,13,13,13];
-            
+            const diff = gameState.difficulty;
+            let numRange, ops;
+
+            if (gameState.mode === 'generated') {
+                const level = gameState.level;
+                if (level <= 10) { numRange = [1, 6]; ops = ['+', '−']; }
+                else if (level <= 20) { numRange = [1, 9]; ops = ['+', '−', '×']; }
+                else { numRange = [1, 13]; ops = ['+', '−', '×', '÷']; }
+            } else {
+                if (diff === 'easy') { numRange = [1, 6]; ops = ['+', '−']; }
+                else if (diff === 'medium') { numRange = [1, 9]; ops = ['+', '−', '×']; }
+                else { numRange = [1, 13]; ops = ['+', '−', '×', '÷']; }
+            }
+
             while (true) {
                 const nums = [];
                 for (let i = 0; i < 4; i++) {
-                    nums.push(allNumbers[Math.floor(Math.random() * allNumbers.length)]);
+                    nums.push(Math.floor(Math.random() * (numRange[1] - numRange[0] + 1)) + numRange[0]);
                 }
                 
-                const solutions = findSolutions(nums);
+                const solutions = findSolutions(nums, ops);
                 if (solutions.length > 0) {
                     currentNumbers = nums.map(n => ({ value: n, used: false }));
                     return { numbers: currentNumbers, solution: solutions[0] };
@@ -505,18 +718,16 @@
             }
         }
 
-        function findSolutions(nums) {
+        function findSolutions(nums, allowedOps = ['+', '−', '×', '÷']) {
             const results = [];
-            const ops = ['+', '−', '×', '÷'];
+            const ops = allowedOps;
             
             function permute(arr) {
                 if (arr.length === 0) return [[]];
                 const result = [];
                 for (let i = 0; i < arr.length; i++) {
                     const rest = permute(arr.slice(0, i).concat(arr.slice(i + 1)));
-                    for (const r of rest) {
-                        result.push([arr[i]].concat(r));
-                    }
+                    for (const r of rest) result.push([arr[i]].concat(r));
                 }
                 return result;
             }
@@ -525,14 +736,12 @@
                 if (count === 1) return ops.map(o => [o]);
                 const result = [];
                 for (const first of ops) {
-                    for (const rest of generateOps(count - 1)) {
-                        result.push([first, ...rest]);
-                    }
+                    for (const rest of generateOps(count - 1)) result.push([first, ...rest]);
                 }
                 return result;
             }
 
-            function evaluate(a, b, op) {
+            function evalOp(a, b, op) {
                 switch(op) {
                     case '+': return a + b;
                     case '−': return a - b;
@@ -542,63 +751,30 @@
                 return null;
             }
 
-            function buildExpression(nums, ops) {
-                const expr = [];
-                let remaining = [...nums];
-                let opIndex = 0;
-                
-                function combine(idx) {
-                    if (remaining.length === 1) {
-                        if (Math.abs(remaining[0] - 24) < 0.001) {
-                            results.push(expr.join(' '));
-                        }
-                        return;
-                    }
-                    
-                    for (let i = 0; i < remaining.length; i++) {
-                        for (let j = i + 1; j < remaining.length; j++) {
-                            const a = remaining[i];
-                            const b = remaining[j];
-                            const newRemaining = remaining.filter((_, k) => k !== i && k !== j);
-                            
-                            const newOps = [ops[opIndex], ops[opIndex + 1] || ops[opIndex]];
-                            opIndex++;
-                            
-                            for (const op of ops) {
-                                const result = evaluate(a, b, op);
-                                if (result !== null) {
-                                    const savedExpr = [...expr];
-                                    expr.push(`${a} ${op} ${b}`);
-                                    const saved = [...remaining];
-                                    remaining = [...newRemaining, result];
-                                    combine(remaining.length);
-                                    remaining = saved;
-                                    expr.length = savedExpr.length;
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                combine(nums.length);
-                return results;
-            }
-
             for (const numPerm of permute(nums)) {
                 for (const opCombo of generateOps(3)) {
-                    const result = evaluate(evaluate(evaluate(numPerm[0], numPerm[1], opCombo[0]) || 0, numPerm[2], opCombo[1]) || 0, numPerm[3], opCombo[2]);
+                    let result = evalOp(numPerm[0], numPerm[1], opCombo[0]);
+                    if (result === null) continue;
+                    result = evalOp(result, numPerm[2], opCombo[1]);
+                    if (result === null) continue;
+                    result = evalOp(result, numPerm[3], opCombo[2]);
                     if (result === 24) {
                         results.push(`${numPerm[0]} ${opCombo[0]} ${numPerm[1]} ${opCombo[1]} ${numPerm[2]} ${opCombo[2]} ${numPerm[3]} = 24`);
-                    }
-                    
-                    const result2 = evaluate(evaluate(numPerm[0], evaluate(numPerm[1], numPerm[2], opCombo[0]), opCombo[1]) || 0, numPerm[3], opCombo[2]);
-                    if (result2 === 24) {
-                        results.push(`${numPerm[0]} ${opCombo[1]} (${numPerm[1]} ${opCombo[0]} ${numPerm[2]}) ${opCombo[2]} ${numPerm[3]} = 24`);
                     }
                 }
             }
             
             return [...new Set(results)].slice(0, 3);
+        }
+
+        function getTimerForLevel() {
+            if (gameState.isPractice) return 0;
+            if (gameState.mode === 'curated') {
+                if (gameState.difficulty === 'easy') return 45;
+                if (gameState.difficulty === 'medium') return 35;
+                return 25;
+            }
+            return Math.max(30, 60 - Math.floor(gameState.level / 2));
         }
 
         function renderNumbers() {
@@ -616,17 +792,21 @@
         function renderOperators() {
             const container = document.getElementById('operators');
             container.innerHTML = '';
+            const allowedOps = gameState.mode === 'generated' && gameState.level <= 10 ? ['+', '−'] :
+                              gameState.mode === 'curated' && gameState.difficulty === 'easy' ? ['+', '−'] :
+                              ['+', '−', '×', '÷'];
+            
             OPERATORS.forEach(op => {
                 const btn = document.createElement('button');
-                btn.className = 'operator-btn';
+                btn.className = `operator-btn${!allowedOps.includes(op) ? ' disabled' : ''}`;
                 btn.textContent = op;
-                btn.onclick = () => selectOperator(op);
+                btn.onclick = () => allowedOps.includes(op) && selectOperator(op);
                 container.appendChild(btn);
             });
         }
 
         function selectNumber(idx) {
-            if (!gameStarted || currentNumbers[idx].used) return;
+            if (!gameState.score >= 0 || currentNumbers[idx].used) return;
             playSound('select');
             
             if (selectedNumbers.includes(idx)) {
@@ -646,7 +826,7 @@
         }
 
         function selectOperator(op) {
-            if (!gameStarted) return;
+            if (!gameState.score >= 0) return;
             playSound('operator');
             
             if (selectedOperators.length < 3) {
@@ -674,7 +854,7 @@
         }
 
         function undo() {
-            if (!gameStarted) return;
+            if (!gameState.score >= 0) return;
             
             if (selectedNumbers.length > selectedOperators.length) {
                 const lastIdx = selectedNumbers.pop();
@@ -721,10 +901,8 @@
             return result;
         }
 
-        let currentSolution = null;
-
         function submit() {
-            if (!gameStarted) return;
+            if (!gameState.score >= 0) return;
             
             const result = evaluateExpression();
             
@@ -733,27 +911,29 @@
                 document.getElementById('wrongResult').textContent = 'incomplete';
                 document.getElementById('failModal').classList.add('active');
                 document.querySelector('.game-area').classList.add('shake');
-                setTimeout(() => {
-                    document.querySelector('.game-area').classList.remove('shake');
-                }, 300);
+                setTimeout(() => document.querySelector('.game-area').classList.remove('shake'), 300);
                 return;
             }
             
             if (result === 24) {
                 playSound('correct');
-                score += 100 + (timer * 2);
-                document.getElementById('score').textContent = score;
-                document.getElementById('successMsg').textContent = `+${100 + (timer * 2)} points`;
+                const points = Math.round((100 + (gameState.timer * 2)) * gameState.multiplier);
+                gameState.score += points;
+                gameState.streak++;
+                updateMultiplier();
+                updateUI();
+                document.getElementById('successMsg').textContent = `+${points} points`;
                 document.getElementById('successModal').classList.add('active');
                 clearInterval(timerInterval);
             } else {
                 playSound('wrong');
+                gameState.streak = 0;
+                gameState.multiplier = 1.0;
+                updateUI();
                 document.getElementById('wrongResult').textContent = result !== null ? result : 'invalid';
                 document.getElementById('failModal').classList.add('active');
                 document.querySelector('.game-area').classList.add('shake');
-                setTimeout(() => {
-                    document.querySelector('.game-area').classList.remove('shake');
-                }, 300);
+                setTimeout(() => document.querySelector('.game-area').classList.remove('shake'), 300);
             }
         }
 
@@ -761,47 +941,98 @@
             playSound('hint');
             const hintEl = document.getElementById('hint');
             if (currentSolution) {
-                hintEl.textContent = `💡 Try: ${currentSolution}`;
+                hintEl.textContent = `💡 ${currentSolution}`;
                 hintEl.classList.add('visible');
             }
         }
 
-        function startGame() {
-            document.getElementById('startModal').classList.remove('active');
-            gameStarted = true;
-            score = 0;
-            level = 1;
-            document.getElementById('score').textContent = score;
-            document.getElementById('level').textContent = level;
-            startLevel();
+        function updateMultiplier() {
+            if (gameState.streak >= 6) gameState.multiplier = 2.0;
+            else if (gameState.streak >= 3) gameState.multiplier = 1.5;
+            else gameState.multiplier = 1.0;
         }
 
-        function startLevel() {
-            const puzzle = generatePuzzle();
-            currentNumbers = puzzle.numbers;
-            currentSolution = puzzle.solution;
+        function updateUI() {
+            document.getElementById('level').textContent = gameState.level;
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('streak').textContent = gameState.streak;
+            document.getElementById('multiplier').textContent = gameState.multiplier.toFixed(1);
             
+            const diffEl = document.getElementById('difficulty');
+            if (gameState.mode === 'curated') {
+                diffEl.textContent = gameState.difficulty.toUpperCase();
+            } else if (gameState.mode === 'generated') {
+                const tiers = ['EASY', 'EASY', 'MED', 'MED', 'HARD'];
+                diffEl.textContent = tiers[Math.min(4, Math.floor(gameState.level / 10))];
+            } else {
+                diffEl.textContent = 'PRACTICE';
+            }
+        }
+
+        function startGame() {
+            document.getElementById('modeModal').classList.remove('active');
+            
+            gameState.timer = getTimerForLevel();
+            gameState.maxTime = gameState.timer;
+            
+            document.getElementById('timer').textContent = gameState.timer;
+            document.getElementById('timerContainer').style.display = gameState.isPractice ? 'none' : 'block';
+            document.getElementById('progressContainer').style.display = gameState.isPractice ? 'none' : 'block';
+            document.getElementById('practiceNotice').style.display = gameState.isPractice ? 'block' : 'none';
+            
+            loadPuzzle();
+            startTimer();
+        }
+
+        function loadPuzzle() {
             selectedNumbers = [];
             selectedOperators = [];
+            
+            if (gameState.mode === 'curated') {
+                const puzzles = CURATED_PUZZLES[gameState.difficulty];
+                let idx = gameState.currentPuzzleIndex;
+                
+                while (gameState.solvedPuzzles.includes(idx) && gameState.solvedPuzzles.length < puzzles.length) {
+                    idx = (idx + 1) % puzzles.length;
+                }
+                
+                if (gameState.solvedPuzzles.length >= puzzles.length) {
+                    document.getElementById('completeModal').classList.add('active');
+                    return;
+                }
+                
+                gameState.currentPuzzleIndex = idx;
+                const puzzle = puzzles[idx];
+                currentNumbers = puzzle.numbers.map(n => ({ value: n, used: false }));
+                currentSolution = puzzle.hint;
+            } else {
+                const puzzle = generatePuzzle();
+                currentNumbers = puzzle.numbers;
+                currentSolution = puzzle.solution;
+            }
             
             renderNumbers();
             renderOperators();
             updateExpression();
+            updateUI();
             document.getElementById('hint').classList.remove('visible');
-            
-            timer = TIMER_DURATION;
-            document.getElementById('timer').textContent = timer;
-            document.getElementById('progress').style.width = '100%';
-            
+        }
+
+        function startTimer() {
             clearInterval(timerInterval);
+            
+            if (gameState.isPractice) return;
+            
             timerInterval = setInterval(() => {
-                timer--;
-                document.getElementById('timer').textContent = timer;
-                document.getElementById('progress').style.width = `${(timer / TIMER_DURATION) * 100}%`;
+                gameState.timer--;
+                document.getElementById('timer').textContent = gameState.timer;
+                document.getElementById('progress').style.width = `${(gameState.timer / gameState.maxTime) * 100}%`;
                 
-                if (timer <= 0) {
+                if (gameState.timer <= 0) {
                     clearInterval(timerInterval);
-                    document.getElementById('finalScore').textContent = score;
+                    gameState.streak = 0;
+                    gameState.multiplier = 1.0;
+                    document.getElementById('finalScore').textContent = gameState.score;
                     document.getElementById('timeoutModal').classList.add('active');
                 }
             }, 1000);
@@ -809,31 +1040,99 @@
 
         function nextLevel() {
             document.getElementById('successModal').classList.remove('active');
-            level++;
-            document.getElementById('level').textContent = level;
-            startLevel();
+            
+            if (gameState.mode === 'curated') {
+                gameState.solvedPuzzles.push(gameState.currentPuzzleIndex);
+                if (gameState.solvedPuzzles.length >= CURATED_PUZZLES[gameState.difficulty].length) {
+                    document.getElementById('completeModal').classList.add('active');
+                    return;
+                }
+            } else {
+                gameState.level++;
+            }
+            
+            gameState.timer = getTimerForLevel();
+            gameState.maxTime = gameState.timer;
+            document.getElementById('timer').textContent = gameState.timer;
+            document.getElementById('progress').style.width = '100%';
+            
+            loadPuzzle();
+            startTimer();
         }
 
         function retryLevel() {
             document.getElementById('failModal').classList.remove('active');
         }
 
-        function restartGame() {
+        function showModeSelect() {
+            document.getElementById('modeModal').classList.add('active');
+            document.getElementById('successModal').classList.remove('active');
+            document.getElementById('failModal').classList.remove('active');
             document.getElementById('timeoutModal').classList.remove('active');
-            gameStarted = false;
-            document.getElementById('startModal').classList.add('active');
+            document.getElementById('completeModal').classList.remove('active');
         }
 
-        document.getElementById('startBtn').onclick = startGame;
+        function resetGame() {
+            gameState = {
+                mode: 'curated',
+                difficulty: 'easy',
+                level: 1,
+                score: 0,
+                streak: 0,
+                multiplier: 1.0,
+                timer: 60,
+                maxTime: 60,
+                isPractice: false,
+                currentPuzzleIndex: 0,
+                solvedPuzzles: []
+            };
+            showModeSelect();
+        }
+
+        document.getElementById('curatedBtn').onclick = function() {
+            gameState.mode = 'curated';
+            gameState.isPractice = false;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            document.getElementById('difficultySelect').style.display = 'block';
+        };
+
+        document.getElementById('generatedBtn').onclick = function() {
+            gameState.mode = 'generated';
+            gameState.isPractice = false;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            document.getElementById('difficultySelect').style.display = 'none';
+        };
+
+        document.getElementById('practiceBtn').onclick = function() {
+            gameState.mode = 'curated';
+            gameState.isPractice = true;
+            gameState.difficulty = 'easy';
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            document.getElementById('difficultySelect').style.display = 'none';
+        };
+
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.onclick = function() {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                gameState.difficulty = this.dataset.diff;
+            };
+        });
+
+        document.getElementById('startGameBtn').onclick = startGame;
         document.getElementById('nextBtn').onclick = nextLevel;
         document.getElementById('retryBtn').onclick = retryLevel;
-        document.getElementById('restartBtn').onclick = restartGame;
+        document.getElementById('restartBtn').onclick = resetGame;
+        document.getElementById('completeBtn').onclick = resetGame;
         document.getElementById('undoBtn').onclick = undo;
         document.getElementById('clearBtn').onclick = clearAll;
         document.getElementById('submitBtn').onclick = submit;
         document.getElementById('hintBtn').onclick = showHint;
 
-        document.getElementById('startModal').classList.add('active');
+        document.getElementById('modeModal').classList.add('active');
     </script>
 </body>
 </html>
