@@ -711,6 +711,9 @@
                     nums.push(Math.floor(Math.random() * (numRange[1] - numRange[0] + 1)) + numRange[0]);
                 }
                 
+                const uniqueNums = [...new Set(nums)];
+                if (uniqueNums.length < 2) continue;
+                
                 const solutions = findSolutions(nums, ops);
                 if (solutions.length > 0) {
                     currentNumbers = nums.map(n => ({ value: n, used: false }));
