@@ -1003,7 +1003,7 @@
                 
                 gameState.currentPuzzleIndex = idx;
                 const puzzle = puzzles[idx];
-                currentNumbers = puzzle.numbers.map(n => ({ value: n, used: false }));
+                currentNumbers = puzzle.nums.map(n => ({ value: n, used: false }));
                 currentSolution = puzzle.hint;
             } else {
                 const puzzle = generatePuzzle();
