@@ -705,7 +705,9 @@
                 else { numRange = [1, 13]; ops = ['+', '−', '×', '÷']; }
             }
 
-            while (true) {
+            let candidates = [];
+            
+            for (let attempt = 0; attempt < 50 && candidates.length < 3; attempt++) {
                 const nums = [];
                 for (let i = 0; i < 4; i++) {
                     nums.push(Math.floor(Math.random() * (numRange[1] - numRange[0] + 1)) + numRange[0]);
@@ -716,9 +718,14 @@
                 
                 const solutions = findSolutions(nums, ops);
                 if (solutions.length > 0) {
-                    currentNumbers = nums.map(n => ({ value: n, used: false }));
-                    return { numbers: currentNumbers, solution: solutions[0] };
+                    candidates.push({ nums, solution: solutions[0] });
                 }
+            }
+            
+            if (candidates.length > 0) {
+                const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+                currentNumbers = chosen.nums.map(n => ({ value: n, used: false }));
+                return { numbers: currentNumbers, solution: chosen.solution };
             }
         }
 
