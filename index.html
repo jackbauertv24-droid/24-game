@@ -741,6 +741,10 @@
                 currentNumbers = chosen.nums.map(n => ({ value: n, used: false }));
                 return { numbers: currentNumbers, solution: chosen.solution };
             }
+            
+            // Fallback: guaranteed solvable puzzle
+            currentNumbers = [1, 2, 3, 4].map(n => ({ value: n, used: false }));
+            return { numbers: currentNumbers, solution: "1×2×3×4 = 24" };
         }
 
         function findSolutions(nums, allowedOps = ['+', '−', '×', '÷']) {
