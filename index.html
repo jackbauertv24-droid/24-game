@@ -674,6 +674,9 @@
 
         function initAudio() {
             if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
         }
 
         function playTone(freq, duration, type = 'sine') {
