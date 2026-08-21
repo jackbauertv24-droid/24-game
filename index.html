@@ -853,6 +853,10 @@
 
         function selectOperator(op) {
             if (!gameState.started) return;
+            
+            // Only allow operator if there's a number to follow it
+            if (selectedOperators.length >= selectedNumbers.length) return;
+            
             playSound('operator');
             
             if (selectedOperators.length < 3) {
