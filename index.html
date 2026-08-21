@@ -825,6 +825,7 @@
             const container = document.getElementById('operators');
             container.innerHTML = '';
             const allowedOps = gameState.mode === 'generated' && gameState.level <= 10 ? ['+', '−'] :
+                              gameState.mode === 'generated' && gameState.level <= 20 ? ['+', '−', '×'] :
                               gameState.mode === 'curated' && gameState.difficulty === 'easy' ? ['+', '−'] :
                               ['+', '−', '×', '÷'];
             
