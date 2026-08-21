@@ -824,9 +824,6 @@
                 selectedNumbers = selectedNumbers.filter(i => i !== idx);
                 currentNumbers[idx].used = false;
             } else {
-                const expectedOps = selectedNumbers.length;
-                if (selectedOperators.length < expectedOps) return;
-                
                 if (selectedNumbers.length < 4) {
                     selectedNumbers.push(idx);
                     currentNumbers[idx].used = true;
