@@ -1036,7 +1036,13 @@
                 gameState.currentPuzzleIndex = idx;
                 const puzzle = puzzles[idx];
                 currentNumbers = puzzle.nums.map(n => ({ value: n, used: false }));
-                currentSolution = puzzle.hint;
+                
+                // Generate hint dynamically based on difficulty
+                const diffOps = gameState.difficulty === 'easy' ? ['+', '−'] :
+                               gameState.difficulty === 'medium' ? ['+', '−', '×'] :
+                               ['+', '−', '×', '÷'];
+                const solutions = findSolutions(puzzle.nums, diffOps);
+                currentSolution = solutions.length > 0 ? solutions[0] : "Try different combinations";
             } else {
                 const puzzle = generatePuzzle();
                 currentNumbers = puzzle.numbers;
