@@ -1057,16 +1057,21 @@
             
             timerInterval = setInterval(() => {
                 gameState.timer--;
-                document.getElementById('timer').textContent = gameState.timer;
-                document.getElementById('progress').style.width = `${(gameState.timer / gameState.maxTime) * 100}%`;
                 
                 if (gameState.timer <= 0) {
+                    gameState.timer = 0;
                     clearInterval(timerInterval);
+                    document.getElementById('timer').textContent = 0;
+                    document.getElementById('progress').style.width = '0%';
                     gameState.streak = 0;
                     gameState.multiplier = 1.0;
                     document.getElementById('finalScore').textContent = gameState.score;
                     document.getElementById('timeoutModal').classList.add('active');
+                    return;
                 }
+                
+                document.getElementById('timer').textContent = gameState.timer;
+                document.getElementById('progress').style.width = `${(gameState.timer / gameState.maxTime) * 100}%`;
             }, 1000);
         }
 
