@@ -386,6 +386,16 @@
             text-align: center;
         }
 
+        .info-notice {
+            background: rgba(255,255,255,0.9);
+            color: var(--dark);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            text-align: center;
+            opacity: 0.8;
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-10px); }
@@ -443,6 +453,10 @@
 
             <div class="practice-notice" id="practiceNotice" style="display: none;">
                 🎯 Practice Mode - No Timer
+            </div>
+
+            <div class="info-notice">
+                💡 Expressions calculate left-to-right (no parentheses)
             </div>
 
             <div class="numbers-row" id="numbers"></div>
