@@ -1084,6 +1084,8 @@
         }
 
         function resetGame() {
+            clearInterval(timerInterval);
+            timerInterval = null;
             gameState = {
                 mode: 'curated',
                 difficulty: 'easy',
