@@ -935,6 +935,7 @@
                 clearInterval(timerInterval);
             } else {
                 playSound('wrong');
+                clearInterval(timerInterval);
                 gameState.streak = 0;
                 gameState.multiplier = 1.0;
                 updateUI();
@@ -1071,6 +1072,7 @@
 
         function retryLevel() {
             document.getElementById('failModal').classList.remove('active');
+            startTimer();
         }
 
         function showModeSelect() {
