@@ -1062,9 +1062,13 @@
 
         function startTimer() {
             clearInterval(timerInterval);
-            
+
             if (gameState.isPractice) return;
-            
+
+            gameState.timer = Math.max(0, gameState.timer);
+            document.getElementById('timer').textContent = gameState.timer;
+            document.getElementById('progress').style.width = `${gameState.maxTime > 0 ? (gameState.timer / gameState.maxTime) * 100 : 0}%`;
+
             timerInterval = setInterval(() => {
                 gameState.timer--;
                 
@@ -1109,6 +1113,11 @@
 
         function retryLevel() {
             document.getElementById('failModal').classList.remove('active');
+            clearAll();
+            gameState.timer = getTimerForLevel();
+            gameState.maxTime = gameState.timer;
+            document.getElementById('timer').textContent = gameState.timer;
+            document.getElementById('progress').style.width = '100%';
             startTimer();
         }
 
