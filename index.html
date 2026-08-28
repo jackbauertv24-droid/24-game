@@ -823,11 +823,15 @@
         }
 
         function saveStats() {
-            localStorage.setItem('24-game-stats', JSON.stringify({
-                solvedCount: gameState.solvedCount,
-                playedCount: gameState.playedCount,
-                bestStreak: gameState.bestStreak
-            }));
+            try {
+                localStorage.setItem('24-game-stats', JSON.stringify({
+                    solvedCount: gameState.solvedCount,
+                    playedCount: gameState.playedCount,
+                    bestStreak: gameState.bestStreak
+                }));
+            } catch {
+                return;
+            }
         }
 
         const AudioContext = window.AudioContext || window.webkitAudioContext;
