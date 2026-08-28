@@ -536,15 +536,36 @@
             color: white;
         }
 
+        .stats-toggle {
+            align-self: center;
+            padding: 6px 12px;
+            border: 0;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.22);
+            color: white;
+            font: 600 12px 'Fredoka', sans-serif;
+            cursor: pointer;
+        }
+
+        .stats-toggle:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+
         .stats-panel {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            margin-top: auto;
+            width: min(480px, calc(100% - 20px));
+            margin: 0 auto 10px;
+        }
+
+        .stats-panel.open {
+            display: grid;
         }
 
         .stat-card {
-            padding: 10px 8px;
+            padding: 8px 6px;
             background: rgba(255,255,255,0.9);
             border-radius: 12px;
             color: var(--dark);
@@ -554,13 +575,22 @@
 
         .stat-card strong {
             display: block;
-            font-size: 18px;
+            font-size: 17px;
             color: var(--primary);
         }
 
         .stat-card span {
             display: block;
-            font-size: 11px;
+            font-size: 10px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+            }
         }
     </style>
 </head>
@@ -609,7 +639,9 @@
 
             <button class="action-btn btn-submit" id="submitBtn">✓ Submit</button>
 
-            <div class="stats-panel" aria-label="Game statistics">
+            <button class="stats-toggle" id="statsToggle" type="button" aria-expanded="false" aria-controls="statsPanel">View stats</button>
+
+            <div class="stats-panel" id="statsPanel" aria-label="Game statistics">
                 <div class="stat-card"><strong id="statSolved">0</strong><span>Solved</span></div>
                 <div class="stat-card"><strong id="statPlayed">0</strong><span>Played</span></div>
                 <div class="stat-card"><strong id="statAccuracy">0%</strong><span>Accuracy</span></div>
@@ -1459,6 +1491,12 @@
         document.getElementById('clearBtn').onclick = clearAll;
         document.getElementById('submitBtn').onclick = submit;
         document.getElementById('hintBtn').onclick = showHint;
+        document.getElementById('statsToggle').onclick = () => {
+            const panel = document.getElementById('statsPanel');
+            const open = panel.classList.toggle('open');
+            document.getElementById('statsToggle').setAttribute('aria-expanded', String(open));
+            document.getElementById('statsToggle').textContent = open ? 'Hide stats' : 'View stats';
+        };
         document.getElementById('expressionArea').onclick = event => {
             if (!event.target.closest('.expression-token')) undoLastMove();
         };
