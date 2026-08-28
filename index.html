@@ -551,6 +551,7 @@
                 <div class="stat-card"><strong id="statSolved">0</strong><span>Solved</span></div>
                 <div class="stat-card"><strong id="statPlayed">0</strong><span>Played</span></div>
                 <div class="stat-card"><strong id="statAccuracy">0%</strong><span>Accuracy</span></div>
+                <div class="stat-card"><strong id="statBestStreak">0</strong><span>Best streak</span></div>
             </div>
         </div>
     </div>
@@ -736,7 +737,8 @@
             solvedPuzzles: [],
             started: false,
             solvedCount: 0,
-            playedCount: 0
+            playedCount: 0,
+            bestStreak: 0
         };
 
         let currentNumbers = [];
@@ -1043,6 +1045,7 @@
                 const points = Math.round((100 + (gameState.timer * 2)) * gameState.multiplier);
                 gameState.score += points;
                 gameState.streak++;
+                gameState.bestStreak = Math.max(gameState.bestStreak, gameState.streak);
                 updateMultiplier();
                 updateUI();
                 document.getElementById('successMsg').textContent = `+${points} points`;
@@ -1083,6 +1086,7 @@
             document.getElementById('statSolved').textContent = solved;
             document.getElementById('statPlayed').textContent = played;
             document.getElementById('statAccuracy').textContent = played > 0 ? `${Math.round((solved / played) * 100)}%` : '0%';
+            document.getElementById('statBestStreak').textContent = gameState.bestStreak;
         }
 
         function updateUI() {
@@ -1246,7 +1250,10 @@
                 isPractice: false,
                 currentPuzzleIndex: 0,
                 solvedPuzzles: [],
-                started: false
+                started: false,
+                solvedCount: 0,
+                playedCount: 0,
+                bestStreak: 0
             };
             showModeSelect();
         }
