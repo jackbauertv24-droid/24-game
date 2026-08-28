@@ -130,7 +130,7 @@
             border: 3px solid transparent;
         }
 
-        .number-card:active {
+        .number-card:active, .number-card.pressing, .operator-btn:active, .operator-btn.pressing {
             transform: scale(0.95);
         }
 
@@ -151,6 +151,18 @@
                 width: 68px;
                 height: 78px;
                 font-size: 28px;
+            }
+
+            .expression-area {
+                overflow-x: auto;
+                justify-content: flex-start;
+            }
+
+            .expression {
+                width: max-content;
+                max-width: none;
+                justify-content: flex-start;
+                white-space: nowrap;
             }
 
             .operator-btn {
@@ -962,7 +974,8 @@
             const container = document.getElementById('numbers');
             container.innerHTML = '';
             currentNumbers.forEach((num, idx) => {
-                const card = document.createElement('div');
+                const card = document.createElement('button');
+                card.type = 'button';
                 card.className = `number-card${num.used ? ' used' : ''}`;
                 card.textContent = num.value;
                 card.setAttribute('role', 'button');
@@ -975,6 +988,10 @@
                         selectNumber(idx);
                     }
                 };
+                card.onpointerdown = () => card.classList.add('pressing');
+                card.onpointerup = () => card.classList.remove('pressing');
+                card.onpointercancel = () => card.classList.remove('pressing');
+                card.onpointerleave = () => card.classList.remove('pressing');
                 container.appendChild(card);
             });
         }
@@ -994,6 +1011,10 @@
                 btn.setAttribute('aria-label', `Operator ${op}`);
                 btn.disabled = !allowedOps.includes(op);
                 btn.onclick = () => allowedOps.includes(op) && selectOperator(op);
+                btn.onpointerdown = () => btn.classList.add('pressing');
+                btn.onpointerup = () => btn.classList.remove('pressing');
+                btn.onpointercancel = () => btn.classList.remove('pressing');
+                btn.onpointerleave = () => btn.classList.remove('pressing');
                 container.appendChild(btn);
             });
         }
