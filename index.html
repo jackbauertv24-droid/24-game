@@ -196,12 +196,63 @@
             box-shadow: var(--shadow);
         }
 
+        .expression-area {
+            cursor: pointer;
+        }
+
         .expression {
+            width: 100%;
             font-size: 28px;
             font-weight: 600;
             color: var(--dark);
             text-align: center;
             word-break: break-all;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .expression-token {
+            min-height: 44px;
+            padding: 4px 6px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            font: inherit;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .expression-token:hover,
+        .expression-token:focus-visible {
+            background: rgba(255, 107, 107, 0.14);
+            outline: none;
+        }
+
+        .expression-token:active {
+            transform: scale(0.94);
+        }
+
+        .number-token {
+            color: var(--primary);
+        }
+
+        .operator-token {
+            color: var(--secondary);
+        }
+
+        .expression-placeholder {
+            color: #999;
+        }
+
+        .expression-cue {
+            flex-basis: 100%;
+            margin-top: 4px;
+            color: #888;
+            font-size: 12px;
+            font-weight: 400;
         }
 
         .result.correct {
@@ -529,9 +580,9 @@
 
             <div class="numbers-row" id="numbers"></div>
 
-            <div class="expression-area">
+            <div class="expression-area" id="expressionArea" aria-label="Equation. Tap empty space to undo the last move.">
                 <div class="expression" id="expression">
-                    <span style="color: #999;">Tap numbers & operators</span>
+                    <span class="expression-placeholder">Tap numbers & operators</span>
                 </div>
             </div>
 
@@ -540,8 +591,7 @@
             <div class="operators-row" id="operators"></div>
 
             <div class="actions-row">
-                <button class="action-btn btn-undo" id="undoBtn">↩️ Undo</button>
-                <button class="action-btn btn-clear" id="clearBtn">🗑️ Clear</button>
+                <button class="action-btn btn-clear" id="clearBtn" aria-label="Clear equation">🗑️ Clear</button>
                 <button class="action-btn btn-hint" id="hintBtn">💡 Hint</button>
             </div>
 
@@ -981,25 +1031,77 @@
 
         function updateExpression() {
             const container = document.getElementById('expression');
-            
-            if (selectedNumbers.length === 0 && selectedOperators.length === 0) {
-                container.innerHTML = '<span style="color: #999;">Tap numbers & operators</span>';
+            container.replaceChildren();
+
+            if (selectedNumbers.length === 0) {
+                const placeholder = document.createElement('span');
+                placeholder.className = 'expression-placeholder';
+                placeholder.textContent = 'Tap numbers & operators';
+                container.appendChild(placeholder);
                 return;
             }
 
-            let html = '';
-            for (let i = 0; i < selectedNumbers.length; i++) {
-                html += `<span style="color: var(--primary)">${currentNumbers[selectedNumbers[i]].value}</span>`;
-                if (i < selectedOperators.length) {
-                    html += ` <span style="color: var(--secondary)">${selectedOperators[i]}</span> `;
+            selectedNumbers.forEach((numberIndex, index) => {
+                const numberToken = document.createElement('button');
+                numberToken.className = 'expression-token number-token';
+                numberToken.type = 'button';
+                numberToken.textContent = currentNumbers[numberIndex].value;
+                numberToken.setAttribute('aria-label', `Remove number at step ${index + 1}`);
+                numberToken.onclick = event => {
+                    event.stopPropagation();
+                    truncateExpressionAtNumber(index);
+                };
+                container.appendChild(numberToken);
+
+                if (index < selectedOperators.length) {
+                    const operatorToken = document.createElement('button');
+                    operatorToken.className = 'expression-token operator-token';
+                    operatorToken.type = 'button';
+                    operatorToken.textContent = selectedOperators[index];
+                    operatorToken.setAttribute('aria-label', `Remove operator at step ${index + 1}`);
+                    operatorToken.onclick = event => {
+                        event.stopPropagation();
+                        truncateExpressionAtOperator(index);
+                    };
+                    container.appendChild(operatorToken);
                 }
+            });
+
+            if (!localStorage.getItem('24-game-edit-cue-seen')) {
+                const cue = document.createElement('span');
+                cue.className = 'expression-cue';
+                cue.textContent = 'Tap a token to undo from that step';
+                container.appendChild(cue);
             }
-            container.innerHTML = html;
         }
 
-        function undo() {
+        function truncateExpressionAtNumber(index) {
+            const removedNumbers = selectedNumbers.slice(index);
+            removedNumbers.forEach(numberIndex => {
+                currentNumbers[numberIndex].used = false;
+            });
+            selectedNumbers = selectedNumbers.slice(0, index);
+            selectedOperators = selectedOperators.slice(0, Math.max(0, index - 1));
+            localStorage.setItem('24-game-edit-cue-seen', '1');
+            renderNumbers();
+            updateExpression();
+        }
+
+        function truncateExpressionAtOperator(index) {
+            const removedNumbers = selectedNumbers.slice(index + 1);
+            removedNumbers.forEach(numberIndex => {
+                currentNumbers[numberIndex].used = false;
+            });
+            selectedNumbers = selectedNumbers.slice(0, index + 1);
+            selectedOperators = selectedOperators.slice(0, index);
+            localStorage.setItem('24-game-edit-cue-seen', '1');
+            renderNumbers();
+            updateExpression();
+        }
+
+        function undoLastMove() {
             if (!gameState.started) return;
-            
+            localStorage.setItem('24-game-edit-cue-seen', '1');
             if (selectedNumbers.length > selectedOperators.length) {
                 const lastIdx = selectedNumbers.pop();
                 currentNumbers[lastIdx].used = false;
@@ -1008,6 +1110,10 @@
                 selectedOperators.pop();
             }
             updateExpression();
+        }
+
+        function undo() {
+            undoLastMove();
         }
 
         function clearAll() {
@@ -1319,10 +1425,12 @@
         document.getElementById('retryBtn').onclick = retryLevel;
         document.getElementById('restartBtn').onclick = resetGame;
         document.getElementById('completeBtn').onclick = resetGame;
-        document.getElementById('undoBtn').onclick = undo;
         document.getElementById('clearBtn').onclick = clearAll;
         document.getElementById('submitBtn').onclick = submit;
         document.getElementById('hintBtn').onclick = showHint;
+        document.getElementById('expressionArea').onclick = event => {
+            if (!event.target.closest('.expression-token')) undoLastMove();
+        };
 
         loadStats();
         updateStats();
