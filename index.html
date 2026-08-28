@@ -1090,7 +1090,7 @@
         }
 
         function selectNumber(idx) {
-            if (!gameState.started || currentNumbers[idx].used) return;
+            if (!gameState.started || currentNumbers[idx].used || selectedNumbers.length !== selectedOperators.length) return;
             playSound('select');
             
             if (selectedNumbers.includes(idx)) {
