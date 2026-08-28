@@ -747,6 +747,27 @@
         let timerInterval = null;
         let currentSolution = null;
 
+        function loadStats() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('24-game-stats') || '{}');
+                gameState.solvedCount = Number.isFinite(saved.solvedCount) ? saved.solvedCount : 0;
+                gameState.playedCount = Number.isFinite(saved.playedCount) ? saved.playedCount : 0;
+                gameState.bestStreak = Number.isFinite(saved.bestStreak) ? saved.bestStreak : 0;
+            } catch {
+                gameState.solvedCount = 0;
+                gameState.playedCount = 0;
+                gameState.bestStreak = 0;
+            }
+        }
+
+        function saveStats() {
+            localStorage.setItem('24-game-stats', JSON.stringify({
+                solvedCount: gameState.solvedCount,
+                playedCount: gameState.playedCount,
+                bestStreak: gameState.bestStreak
+            }));
+        }
+
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
 
@@ -1046,6 +1067,7 @@
                 gameState.score += points;
                 gameState.streak++;
                 gameState.bestStreak = Math.max(gameState.bestStreak, gameState.streak);
+                saveStats();
                 updateMultiplier();
                 updateUI();
                 document.getElementById('successMsg').textContent = `+${points} points`;
@@ -1054,6 +1076,7 @@
             } else {
                 playSound('wrong');
                 gameState.playedCount++;
+                saveStats();
                 clearInterval(timerInterval);
                 gameState.streak = 0;
                 gameState.multiplier = 1.0;
@@ -1301,6 +1324,8 @@
         document.getElementById('submitBtn').onclick = submit;
         document.getElementById('hintBtn').onclick = showHint;
 
+        loadStats();
+        updateStats();
         document.getElementById('modeModal').classList.add('active');
     </script>
 </body>
