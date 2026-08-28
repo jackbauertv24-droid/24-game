@@ -671,8 +671,6 @@
                 <button class="action-btn btn-hint" id="hintBtn">💡 Hint</button>
             </div>
 
-            <button class="action-btn btn-submit" id="submitBtn">✓ Submit</button>
-
             <button class="stats-toggle" id="statsToggle" type="button" aria-expanded="false" aria-controls="statsPanel">View stats</button>
 
             <div class="stats-panel" id="statsPanel" aria-label="Game statistics">
@@ -874,6 +872,23 @@
         let selectedOperators = [];
         let timerInterval = null;
         let currentSolution = null;
+        let autoSubmitTimer = null;
+
+        function cancelAutoSubmit() {
+            if (autoSubmitTimer !== null) {
+                clearTimeout(autoSubmitTimer);
+                autoSubmitTimer = null;
+            }
+        }
+
+        function scheduleAutoSubmit() {
+            cancelAutoSubmit();
+            if (!gameState.started || selectedNumbers.length !== 4 || selectedOperators.length !== 3) return;
+            autoSubmitTimer = setTimeout(() => {
+                autoSubmitTimer = null;
+                submit();
+            }, 350);
+        }
 
         function loadStats() {
             try {
@@ -1121,6 +1136,7 @@
         }
 
         function updateExpression() {
+            cancelAutoSubmit();
             const container = document.getElementById('expression');
             container.replaceChildren();
 
@@ -1164,6 +1180,8 @@
                 cue.textContent = 'Tap a token to undo from that step';
                 container.appendChild(cue);
             }
+
+            scheduleAutoSubmit();
         }
 
         function truncateExpressionAtNumber(index) {
@@ -1208,6 +1226,7 @@
         }
 
         function clearAll() {
+            cancelAutoSubmit();
             selectedNumbers = [];
             selectedOperators = [];
             currentNumbers.forEach(n => n.used = false);
@@ -1243,6 +1262,7 @@
         }
 
         function submit() {
+            cancelAutoSubmit();
             if (!gameState.started) return;
             
             const result = evaluateExpression();
@@ -1523,7 +1543,6 @@
         document.getElementById('restartBtn').onclick = resetGame;
         document.getElementById('completeBtn').onclick = resetGame;
         document.getElementById('clearBtn').onclick = clearAll;
-        document.getElementById('submitBtn').onclick = submit;
         document.getElementById('hintBtn').onclick = showHint;
         document.getElementById('statsToggle').onclick = () => {
             const panel = document.getElementById('statsPanel');
