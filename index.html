@@ -1361,6 +1361,11 @@
         }
 
         function resetGame() {
+            const preservedStats = {
+                solvedCount: gameState.solvedCount,
+                playedCount: gameState.playedCount,
+                bestStreak: gameState.bestStreak
+            };
             clearInterval(timerInterval);
             timerInterval = null;
             currentNumbers = [];
@@ -1380,10 +1385,11 @@
                 currentPuzzleIndex: 0,
                 solvedPuzzles: [],
                 started: false,
-                solvedCount: 0,
-                playedCount: 0,
-                bestStreak: 0
+                solvedCount: preservedStats.solvedCount,
+                playedCount: preservedStats.playedCount,
+                bestStreak: preservedStats.bestStreak
             };
+            updateStats();
             showModeSelect();
         }
 
