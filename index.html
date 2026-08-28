@@ -112,6 +112,7 @@
 
         .number-card {
             width: 70px;
+            min-width: 64px;
             height: 90px;
             background: var(--card-bg);
             border-radius: 16px;
@@ -131,6 +132,46 @@
 
         .number-card:active {
             transform: scale(0.95);
+        }
+
+        @media (max-width: 390px) {
+            .game-container {
+                padding: 10px;
+            }
+
+            .game-area {
+                gap: 10px;
+            }
+
+            .numbers-row, .operators-row {
+                gap: 8px;
+            }
+
+            .number-card {
+                width: 68px;
+                height: 78px;
+                font-size: 28px;
+            }
+
+            .operator-btn {
+                width: 54px;
+                height: 54px;
+                font-size: 24px;
+            }
+
+            .action-btn {
+                padding: 13px 8px;
+                font-size: 14px;
+            }
+
+            .expression-area {
+                min-height: 66px;
+                padding: 12px;
+            }
+
+            .expression {
+                font-size: 24px;
+            }
         }
 
         .number-card.selected {
@@ -816,7 +857,16 @@
                 const card = document.createElement('div');
                 card.className = `number-card${num.used ? ' used' : ''}`;
                 card.textContent = num.value;
+                card.setAttribute('role', 'button');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('aria-label', `Number ${num.value}${num.used ? ', used' : ''}`);
                 card.onclick = () => selectNumber(idx);
+                card.onkeydown = event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        selectNumber(idx);
+                    }
+                };
                 container.appendChild(card);
             });
         }
@@ -833,6 +883,8 @@
                 const btn = document.createElement('button');
                 btn.className = `operator-btn${!allowedOps.includes(op) ? ' disabled' : ''}`;
                 btn.textContent = op;
+                btn.setAttribute('aria-label', `Operator ${op}`);
+                btn.disabled = !allowedOps.includes(op);
                 btn.onclick = () => allowedOps.includes(op) && selectOperator(op);
                 container.appendChild(btn);
             });
