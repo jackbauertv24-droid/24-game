@@ -1012,6 +1012,7 @@
             gameState.maxTime = gameState.timer;
             
             document.getElementById('timer').textContent = gameState.timer;
+            document.getElementById('progress').style.width = '100%';
             document.getElementById('timerContainer').style.display = gameState.isPractice ? 'none' : 'block';
             document.getElementById('progressContainer').style.display = gameState.isPractice ? 'none' : 'block';
             document.getElementById('practiceNotice').style.display = gameState.isPractice ? 'block' : 'none';
@@ -1105,8 +1106,6 @@
             gameState.timer = getTimerForLevel();
             gameState.maxTime = gameState.timer;
             document.getElementById('timer').textContent = gameState.timer;
-            document.getElementById('progress').style.width = '100%';
-            
             loadPuzzle();
             startTimer();
         }
