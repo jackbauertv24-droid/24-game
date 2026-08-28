@@ -114,7 +114,9 @@
             width: 70px;
             min-width: 64px;
             height: 90px;
-            background: var(--card-bg);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg, #ffffff 0%, #f4f7fc 72%, #e8edf7 100%);
             border-radius: 16px;
             display: flex;
             align-items: center;
@@ -128,6 +130,27 @@
             user-select: none;
             -webkit-user-select: none;
             border: 3px solid transparent;
+            box-shadow: 0 7px 0 #c7d0e2, 0 12px 20px rgba(36, 45, 80, 0.2), inset 0 2px 0 rgba(255,255,255,0.95);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .number-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto;
+            height: 38%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.8), transparent);
+            pointer-events: none;
+        }
+
+        .number-card:hover, .number-card:focus-visible {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 0 #c7d0e2, 0 16px 24px rgba(36, 45, 80, 0.22), inset 0 2px 0 rgba(255,255,255,0.95);
+        }
+
+        .number-card:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 3px;
         }
 
         .number-card:active, .number-card.pressing, .operator-btn:active, .operator-btn.pressing {
@@ -188,13 +211,16 @@
 
         .number-card.selected {
             border-color: var(--primary);
-            background: #FFF0F0;
-            transform: translateY(-4px);
+            background: linear-gradient(145deg, #fff5f5 0%, #ffe9e9 100%);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 0 #d6a8b0, 0 18px 28px rgba(255, 107, 107, 0.28), 0 0 0 4px rgba(255, 107, 107, 0.12), inset 0 2px 0 rgba(255,255,255,0.95);
         }
 
         .number-card.used {
             opacity: 0.3;
             pointer-events: none;
+            transform: translateY(4px) scale(0.97);
+            box-shadow: 0 3px 0 #c7d0e2, 0 5px 10px rgba(36, 45, 80, 0.12);
         }
 
         .expression-area {
@@ -285,7 +311,7 @@
         .operator-btn {
             width: 60px;
             height: 60px;
-            background: var(--card-bg);
+            background: linear-gradient(145deg, #ffffff 0%, #eef4fb 100%);
             border: none;
             border-radius: 16px;
             font-size: 28px;
@@ -293,12 +319,20 @@
             color: var(--dark);
             box-shadow: var(--shadow);
             cursor: pointer;
-            transition: all 0.2s ease;
+            box-shadow: 0 5px 0 #c7d0e2, 0 9px 15px rgba(36, 45, 80, 0.16), inset 0 2px 0 rgba(255,255,255,0.95);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
             font-family: 'Fredoka', sans-serif;
         }
 
+        .operator-btn:hover, .operator-btn:focus-visible {
+            transform: translateY(-3px);
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+
         .operator-btn:active {
-            transform: scale(0.95);
+            transform: translateY(2px) scale(0.96);
+            box-shadow: 0 2px 0 #c7d0e2, 0 4px 8px rgba(36, 45, 80, 0.14);
         }
 
         .operator-btn.disabled {
