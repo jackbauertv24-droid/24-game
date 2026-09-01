@@ -202,18 +202,23 @@
             }
 
             .expression-area {
-                min-height: 66px;
-                padding: 12px;
+                min-height: 80px;
+                padding: 10px 12px;
                 overflow-x: auto;
-                justify-content: flex-start;
             }
 
             .expression {
-                width: max-content;
-                max-width: none;
-                justify-content: flex-start;
-                white-space: nowrap;
-                font-size: 24px;
+                width: 100%;
+            }
+
+            .expression-formula {
+                font-size: 18px;
+                gap: 2px;
+            }
+
+            .expression-live-total {
+                font-size: 26px;
+                min-height: 30px;
             }
 
             .operator-btn {
@@ -245,38 +250,43 @@
         .expression-area {
             background: rgba(255,255,255,0.95);
             border-radius: 20px;
-            padding: 20px;
-            min-height: 80px;
+            padding: 14px 18px;
+            min-height: 94px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: var(--shadow);
-        }
-
-        .expression-area {
             cursor: pointer;
         }
 
         .expression {
             width: 100%;
-            font-size: 28px;
-            font-weight: 600;
-            color: var(--dark);
-            text-align: center;
-            word-break: break-all;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .expression-formula {
+            width: 100%;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             justify-content: center;
-            gap: 2px;
+            gap: 4px;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+            min-height: 32px;
         }
 
         .expression-token {
-            min-height: 44px;
-            padding: 4px 6px;
+            min-height: 34px;
+            padding: 2px 8px;
             border: 0;
             border-radius: 8px;
-            background: transparent;
+            background: rgba(0,0,0,0.04);
             font: inherit;
             cursor: pointer;
             transition: background 0.2s ease, transform 0.2s ease;
@@ -284,7 +294,7 @@
 
         .expression-token:hover,
         .expression-token:focus-visible {
-            background: rgba(255, 107, 107, 0.14);
+            background: rgba(255, 107, 107, 0.16);
             outline: none;
         }
 
@@ -294,22 +304,67 @@
 
         .number-token {
             color: var(--primary);
+            font-weight: 700;
         }
 
         .operator-token {
             color: var(--secondary);
+            font-weight: 700;
         }
 
         .expression-placeholder {
             color: #999;
+            font-size: 18px;
+        }
+
+        .expression-live-total {
+            font-size: 30px;
+            font-weight: 700;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: -0.5px;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .live-result-target {
+            color: var(--success);
+            text-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+            animation: pulseSuccess 0.4s ease;
+        }
+
+        .live-result-invalid {
+            color: var(--error);
+            font-size: 16px;
+        }
+
+        .live-result-pending {
+            color: #8c98a8;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .live-result-evaluated {
+            color: var(--dark);
+        }
+
+        .live-result-single {
+            color: var(--dark);
+        }
+
+        @keyframes pulseSuccess {
+            0% { transform: scale(0.92); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
         }
 
         .expression-cue {
-            flex-basis: 100%;
-            margin-top: 4px;
+            margin-top: 2px;
             color: #888;
             font-size: 12px;
             font-weight: 400;
+            text-align: center;
         }
 
         .move-tools {
@@ -1267,16 +1322,72 @@
             }
         }
 
+        function evalOperation(a, b, op) {
+            switch(op) {
+                case '+': return a + b;
+                case '−': return a - b;
+                case '×': return a * b;
+                case '÷': return b !== 0 && a % b === 0 ? a / b : null;
+            }
+            return null;
+        }
+
+        function getIntermediateCalculation() {
+            if (selectedNumbers.length === 0) {
+                return { value: null, text: '', status: 'empty' };
+            }
+            
+            const nums = selectedNumbers.map(i => currentNumbers[i].value);
+            let val = nums[0];
+            
+            for (let i = 0; i < selectedOperators.length; i++) {
+                if (i + 1 < nums.length) {
+                    val = evalOperation(val, nums[i + 1], selectedOperators[i]);
+                    if (val === null) {
+                        return { value: null, text: '⚠️ Not exact division', status: 'invalid' };
+                    }
+                }
+            }
+            
+            if (selectedOperators.length === selectedNumbers.length) {
+                const lastOp = selectedOperators[selectedOperators.length - 1];
+                return { value: val, text: `${val} ${lastOp} …`, status: 'pending' };
+            }
+            
+            if (selectedNumbers.length === 1) {
+                return { value: val, text: `${val}`, status: 'single' };
+            }
+            
+            if (selectedNumbers.length === 4) {
+                if (val === 24) {
+                    return { value: 24, text: '= 24 🎉', status: 'target' };
+                } else {
+                    return { value: val, text: `= ${val}`, status: 'mismatch' };
+                }
+            }
+            
+            return { value: val, text: `= ${val}`, status: 'evaluated' };
+        }
+
         function updateExpression() {
             cancelAutoSubmit();
             const container = document.getElementById('expression');
             container.replaceChildren();
 
+            const formulaRow = document.createElement('div');
+            formulaRow.className = 'expression-formula';
+
             if (selectedNumbers.length === 0) {
                 const placeholder = document.createElement('span');
                 placeholder.className = 'expression-placeholder';
                 placeholder.textContent = 'Start with any card';
-                container.appendChild(placeholder);
+                formulaRow.appendChild(placeholder);
+                container.appendChild(formulaRow);
+
+                const cue = document.createElement('span');
+                cue.className = 'expression-cue';
+                cue.textContent = 'Tap any card below to begin';
+                container.appendChild(cue);
                 return;
             }
 
@@ -1290,7 +1401,7 @@
                     event.stopPropagation();
                     truncateExpressionAtNumber(index);
                 };
-                container.appendChild(numberToken);
+                formulaRow.appendChild(numberToken);
 
                 if (index < selectedOperators.length) {
                     const operatorToken = document.createElement('button');
@@ -1302,14 +1413,21 @@
                         event.stopPropagation();
                         truncateExpressionAtOperator(index);
                     };
-                    container.appendChild(operatorToken);
+                    formulaRow.appendChild(operatorToken);
                 }
             });
+            container.appendChild(formulaRow);
+
+            const calc = getIntermediateCalculation();
+            const liveTotal = document.createElement('div');
+            liveTotal.className = `expression-live-total live-result-${calc.status}`;
+            liveTotal.textContent = calc.text;
+            container.appendChild(liveTotal);
 
             const cue = document.createElement('span');
             cue.className = 'expression-cue';
             cue.textContent = selectedNumbers.length === 4
-                ? 'Complete — checking your answer…'
+                ? (calc.value === 24 ? 'Complete — submitting…' : 'Complete — checking…')
                 : selectedNumbers.length === selectedOperators.length
                     ? 'Next: choose a card'
                     : 'Next: choose an operation';
@@ -1371,28 +1489,8 @@
 
         function evaluateExpression() {
             if (selectedNumbers.length !== 4 || selectedOperators.length !== 3) return null;
-            
-            const nums = selectedNumbers.map(i => currentNumbers[i].value);
-            
-            function evalOp(a, b, op) {
-                switch(op) {
-                    case '+': return a + b;
-                    case '−': return a - b;
-                    case '×': return a * b;
-                    case '÷': return b !== 0 && a % b === 0 ? a / b : null;
-                }
-                return null;
-            }
-
-            let result = evalOp(nums[0], nums[1], selectedOperators[0]);
-            if (result === null) return null;
-            
-            result = evalOp(result, nums[2], selectedOperators[1]);
-            if (result === null) return null;
-            
-            result = evalOp(result, nums[3], selectedOperators[2]);
-            
-            return result;
+            const calc = getIntermediateCalculation();
+            return calc.value;
         }
 
         function submit() {
