@@ -466,6 +466,7 @@
         .move-tools {
             display: flex;
             gap: 10px;
+            transform-style: preserve-3d;
         }
 
         .move-btn {
@@ -481,10 +482,13 @@
             transition: all 0.15s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            transform: translateZ(10px);
+            position: relative;
+            z-index: 10;
         }
 
         .move-btn:active {
-            transform: translateY(3px);
+            transform: translateZ(5px) translateY(3px);
             box-shadow: 0 1px 0 #151520, 0 3px 7px rgba(0,0,0,0.4);
         }
 
@@ -506,6 +510,7 @@
             justify-content: center;
             gap: 12px;
             flex-wrap: wrap;
+            transform-style: preserve-3d;
         }
 
         .operator-btn {
@@ -522,16 +527,19 @@
             box-shadow: 0 5px 0 #0f0b15, 0 9px 15px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.1);
             transition: transform 0.15s ease, box-shadow 0.15s ease;
             font-family: var(--font-rpg);
+            transform: translateZ(10px);
+            position: relative;
+            z-index: 10;
         }
 
         .operator-btn:hover, .operator-btn:focus-visible {
-            transform: translateY(-3px);
+            transform: translateZ(15px) translateY(-3px);
             border-color: rgba(179,136,255,0.5);
             box-shadow: 0 7px 0 #0f0b15, 0 15px 20px rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.1);
         }
 
         .operator-btn:active {
-            transform: translateY(2px) scale(0.96);
+            transform: translateZ(5px) translateY(2px) scale(0.96);
             box-shadow: 0 2px 0 #0f0b15, 0 4px 8px rgba(0,0,0,0.4);
         }
 
@@ -544,6 +552,7 @@
         .actions-row {
             display: flex;
             gap: 12px;
+            transform-style: preserve-3d;
         }
 
         .action-btn {
@@ -561,10 +570,13 @@
             color: var(--light);
             text-transform: uppercase;
             letter-spacing: 1px;
+            transform: translateZ(10px);
+            position: relative;
+            z-index: 10;
         }
 
         .action-btn:active {
-            transform: scale(0.98);
+            transform: translateZ(5px) scale(0.98);
         }
 
         .btn-hint {
