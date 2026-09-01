@@ -293,6 +293,33 @@
             font-weight: 400;
         }
 
+        .move-tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .move-btn {
+            flex: 1;
+            min-height: 48px;
+            border: 0;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.94);
+            color: var(--dark);
+            font: 600 15px 'Fredoka', sans-serif;
+            box-shadow: 0 4px 0 #c7d0e2, 0 8px 14px rgba(36, 45, 80, 0.14);
+            cursor: pointer;
+        }
+
+        .move-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #c7d0e2, 0 3px 7px rgba(36, 45, 80, 0.14);
+        }
+
+        .move-btn:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+
         .result.correct {
             color: var(--success);
         }
@@ -418,6 +445,61 @@
 
         .modal.active .modal-content {
             transform: scale(1);
+        }
+
+        .celebration-scene {
+            position: relative;
+            height: 126px;
+            margin: -20px -18px 4px;
+            overflow: hidden;
+            perspective: 520px;
+            transform-style: preserve-3d;
+        }
+
+        .celebration-core {
+            position: absolute;
+            top: 52px;
+            left: calc(50% - 20px);
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: radial-gradient(circle at 32% 28%, #fffbd1 0 12%, #ffe66d 30%, #ff8d59 68%, #ff5c7b 100%);
+            color: white;
+            font-size: 20px;
+            box-shadow: 0 0 25px #ffe66d;
+            transform-style: preserve-3d;
+            animation: celebrationCore 1.45s cubic-bezier(.18,.8,.22,1) both;
+        }
+
+        .firework-particle {
+            --angle: 0deg;
+            --distance: 90px;
+            --depth: 0px;
+            position: absolute;
+            top: 64px;
+            left: calc(50% - 5px);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: hsl(var(--hue), 100%, 64%);
+            box-shadow: 0 0 10px hsl(var(--hue), 100%, 70%);
+            transform-style: preserve-3d;
+            animation: fireworkBurst 1.35s cubic-bezier(.12,.65,.28,1) both;
+        }
+
+        @keyframes celebrationCore {
+            0% { opacity: 0; transform: translateZ(-180px) rotateY(-100deg) scale(.15); }
+            52% { opacity: 1; transform: translateZ(55px) rotateY(300deg) scale(1.22); }
+            100% { opacity: 1; transform: translateZ(0) rotateY(720deg) scale(1); }
+        }
+
+        @keyframes fireworkBurst {
+            0% { opacity: 0; transform: rotate(var(--angle)) translateZ(var(--depth)) translateY(0) scale(.1); }
+            20% { opacity: 1; }
+            75% { opacity: 1; transform: rotate(var(--angle)) translateZ(var(--depth)) translateY(calc(var(--distance) * -1)) rotateY(240deg) scale(1); }
+            100% { opacity: 0; transform: rotate(var(--angle)) translateZ(var(--depth)) translateY(calc(var(--distance) * -1 - 18px)) rotateY(420deg) scale(.25); }
         }
 
         .modal h2 {
@@ -656,7 +738,7 @@
 
             <div class="numbers-row" id="numbers"></div>
 
-            <div class="expression-area" id="expressionArea" aria-label="Equation. Tap empty space to undo the last move.">
+            <div class="expression-area" id="expressionArea" aria-label="Equation. Tap a token to edit that step.">
                 <div class="expression" id="expression">
                     <span class="expression-placeholder">Tap numbers & operators</span>
                 </div>
@@ -666,8 +748,12 @@
 
             <div class="operators-row" id="operators"></div>
 
+            <div class="move-tools" aria-label="Equation controls">
+                <button class="move-btn" id="undoBtn" type="button" aria-label="Undo last move">↩ Undo</button>
+                <button class="move-btn" id="clearBtn" type="button" aria-label="Clear equation">⌫ Clear</button>
+            </div>
+
             <div class="actions-row">
-                <button class="action-btn btn-clear" id="clearBtn" aria-label="Clear equation">🗑️ Clear</button>
                 <button class="action-btn btn-hint" id="hintBtn">💡 Hint</button>
             </div>
 
@@ -717,6 +803,9 @@
 
     <div class="modal" id="successModal">
         <div class="modal-content">
+            <div class="celebration-scene" id="celebrationScene" aria-hidden="true">
+                <div class="celebration-core">★</div>
+            </div>
             <h2>🎉 Correct!</h2>
             <p id="successMsg">+100 points</p>
             <button class="modal-btn primary" id="nextBtn">Next Level →</button>
@@ -953,6 +1042,26 @@
             }
         }
 
+        function playCelebration() {
+            const scene = document.getElementById('celebrationScene');
+            scene.querySelectorAll('.firework-particle').forEach(particle => particle.remove());
+
+            for (let i = 0; i < 22; i++) {
+                const particle = document.createElement('i');
+                particle.className = 'firework-particle';
+                particle.style.setProperty('--angle', `${i * (360 / 22)}deg`);
+                particle.style.setProperty('--distance', `${72 + (i % 4) * 13}px`);
+                particle.style.setProperty('--depth', `${(i % 5 - 2) * 30}px`);
+                particle.style.setProperty('--hue', String((i * 31) % 360));
+                scene.appendChild(particle);
+            }
+
+            const core = scene.querySelector('.celebration-core');
+            core.style.animation = 'none';
+            void core.offsetWidth;
+            core.style.animation = '';
+        }
+
         function generatePuzzle() {
             const diff = gameState.difficulty;
             let numRange, ops;
@@ -1143,7 +1252,7 @@
             if (selectedNumbers.length === 0) {
                 const placeholder = document.createElement('span');
                 placeholder.className = 'expression-placeholder';
-                placeholder.textContent = 'Tap numbers & operators';
+                placeholder.textContent = 'Start with any card';
                 container.appendChild(placeholder);
                 return;
             }
@@ -1174,12 +1283,14 @@
                 }
             });
 
-            if (!localStorage.getItem('24-game-edit-cue-seen')) {
-                const cue = document.createElement('span');
-                cue.className = 'expression-cue';
-                cue.textContent = 'Tap a token to undo from that step';
-                container.appendChild(cue);
-            }
+            const cue = document.createElement('span');
+            cue.className = 'expression-cue';
+            cue.textContent = selectedNumbers.length === 4
+                ? 'Complete — checking your answer…'
+                : selectedNumbers.length === selectedOperators.length
+                    ? 'Next: choose a card'
+                    : 'Next: choose an operation';
+            container.appendChild(cue);
 
             scheduleAutoSubmit();
         }
@@ -1289,6 +1400,7 @@
                 updateUI();
                 document.getElementById('successMsg').textContent = `+${points} points`;
                 document.getElementById('successModal').classList.add('active');
+                playCelebration();
                 clearInterval(timerInterval);
             } else {
                 playSound('wrong');
@@ -1542,6 +1654,7 @@
         document.getElementById('retryBtn').onclick = retryLevel;
         document.getElementById('restartBtn').onclick = resetGame;
         document.getElementById('completeBtn').onclick = resetGame;
+        document.getElementById('undoBtn').onclick = undoLastMove;
         document.getElementById('clearBtn').onclick = clearAll;
         document.getElementById('hintBtn').onclick = showHint;
         document.getElementById('statsToggle').onclick = () => {
@@ -1550,10 +1663,6 @@
             document.getElementById('statsToggle').setAttribute('aria-expanded', String(open));
             document.getElementById('statsToggle').textContent = open ? 'Hide stats' : 'View stats';
         };
-        document.getElementById('expressionArea').onclick = event => {
-            if (!event.target.closest('.expression-token')) undoLastMove();
-        };
-
         loadStats();
         updateStats();
         document.getElementById('modeModal').classList.add('active');
