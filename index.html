@@ -35,7 +35,7 @@
 
         body {
             font-family: 'Fredoka', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: url('assets/bg_dungeon.jpg') center/cover no-repeat fixed, #111;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -112,12 +112,83 @@
             width: 100%;
         }
 
+        .monster-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            position: relative;
+            min-height: 120px;
+        }
+
+        .monster-sprite {
+            height: 110px;
+            width: auto;
+            mix-blend-mode: screen;
+            animation: breathe 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px rgba(100,200,255,0.3));
+        }
+
+        .monster-sprite.hit {
+            animation: hit 0.4s ease-out;
+        }
+
+        .monster-health-bar-container {
+            width: 70%;
+            max-width: 180px;
+            height: 10px;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 5px;
+            margin-top: -10px;
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .monster-health-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #ff6b6b);
+            width: 100%;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.05) translateY(-5px); }
+        }
+
+        @keyframes hit {
+            0% { transform: scale(1) translateX(0); filter: brightness(1) drop-shadow(0 0 10px rgba(255,0,0,0.8)); }
+            20% { transform: scale(0.9) translateX(-10px); filter: brightness(2) hue-rotate(-50deg); }
+            40% { transform: scale(0.95) translateX(10px); filter: brightness(2) hue-rotate(-50deg); }
+            60% { transform: scale(1.05) translateX(-5px); filter: brightness(1); }
+            80% { transform: scale(1) translateX(5px); }
+            100% { transform: scale(1) translateX(0); }
+        }
+
         .gamepad {
             display: flex;
             flex-direction: column;
             gap: 12px;
             width: 100%;
             margin-top: auto;
+            perspective: 1000px; /* Enable 3D space */
+        }
+
+        .gamepad-3d-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transform: rotateX(15deg);
+            transform-style: preserve-3d;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.4), inset 0 2px 10px rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255,255,255,0.15);
         }
 
         .numbers-row {
@@ -125,6 +196,7 @@
             justify-content: center;
             gap: 12px;
             flex-wrap: wrap;
+            transform-style: preserve-3d;
         }
 
         .number-card {
@@ -133,7 +205,7 @@
             height: 90px;
             position: relative;
             overflow: hidden;
-            background: linear-gradient(145deg, #ffffff 0%, #f4f7fc 72%, #e8edf7 100%);
+            background: linear-gradient(145deg, #ffffff 0%, #e0e5ec 100%);
             border-radius: 16px;
             display: flex;
             align-items: center;
@@ -141,14 +213,13 @@
             font-size: 32px;
             font-weight: 700;
             color: var(--dark);
-            box-shadow: var(--shadow);
             cursor: pointer;
-            transition: all 0.2s ease;
             user-select: none;
             -webkit-user-select: none;
-            border: 3px solid transparent;
-            box-shadow: 0 7px 0 #c7d0e2, 0 12px 20px rgba(36, 45, 80, 0.2), inset 0 2px 0 rgba(255,255,255,0.95);
-            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+            border: 2px solid rgba(255,255,255,0.8);
+            box-shadow: 0 6px 0 #b8c2d1, 0 15px 20px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.9);
+            transform: translateZ(10px);
+            transition: all 0.15s ease;
         }
 
         .number-card::before {
@@ -161,8 +232,8 @@
         }
 
         .number-card:hover, .number-card:focus-visible {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 0 #c7d0e2, 0 16px 24px rgba(36, 45, 80, 0.22), inset 0 2px 0 rgba(255,255,255,0.95);
+            transform: translateZ(15px) translateY(-4px);
+            box-shadow: 0 8px 0 #b8c2d1, 0 20px 25px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.9);
         }
 
         .number-card:focus-visible {
@@ -171,7 +242,8 @@
         }
 
         .number-card:active, .number-card.pressing, .operator-btn:active, .operator-btn.pressing {
-            transform: scale(0.95);
+            transform: translateZ(2px) translateY(4px);
+            box-shadow: 0 2px 0 #b8c2d1, 0 5px 10px rgba(0,0,0,0.3);
         }
 
         @media (max-width: 390px) {
@@ -807,6 +879,13 @@
                     🎯 Practice Mode - No Timer
                 </div>
 
+                <div class="monster-area" id="monsterArea">
+                    <img src="assets/monster_golem.jpg" alt="Monster" class="monster-sprite" id="monsterSprite">
+                    <div class="monster-health-bar-container">
+                        <div class="monster-health-bar" id="monsterHealth"></div>
+                    </div>
+                </div>
+
                 <div class="expression-area" id="expressionArea" aria-label="Equation. Tap a token to edit that step.">
                     <div class="expression" id="expression">
                         <span class="expression-placeholder">Start with any card</span>
@@ -821,17 +900,19 @@
             </div>
 
             <div class="gamepad" aria-label="Game controls">
-                <div class="numbers-row" id="numbers"></div>
+                <div class="gamepad-3d-wrapper">
+                    <div class="numbers-row" id="numbers"></div>
 
-                <div class="operators-row" id="operators"></div>
+                    <div class="operators-row" id="operators"></div>
 
-                <div class="move-tools" aria-label="Equation controls">
-                    <button class="move-btn" id="undoBtn" type="button" aria-label="Undo last move">↩ Undo</button>
-                    <button class="move-btn" id="clearBtn" type="button" aria-label="Clear equation">⌫ Clear</button>
-                </div>
+                    <div class="move-tools" aria-label="Equation controls">
+                        <button class="move-btn" id="undoBtn" type="button" aria-label="Undo last move">↩ Undo</button>
+                        <button class="move-btn" id="clearBtn" type="button" aria-label="Clear equation">⌫ Clear</button>
+                    </div>
 
-                <div class="actions-row">
-                    <button class="action-btn btn-hint" id="hintBtn">💡 Hint</button>
+                    <div class="actions-row">
+                        <button class="action-btn btn-hint" id="hintBtn">💡 Hint</button>
+                    </div>
                 </div>
             </div>
 
