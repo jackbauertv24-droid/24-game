@@ -1595,6 +1595,17 @@
             
             if (result === 24) {
                 playSound('correct');
+                
+                const sprite = document.getElementById('monsterSprite');
+                if (sprite) {
+                    sprite.classList.remove('hit');
+                    void sprite.offsetWidth;
+                    sprite.classList.add('hit');
+                }
+                
+                gameState.enemyCurrentHP -= 100;
+                updateHealthBar();
+
                 if (!gameState.isPractice) {
                     gameState.playedCount++;
                     gameState.solvedCount++;
@@ -1606,10 +1617,24 @@
                 gameState.streak++;
                 updateMultiplier();
                 updateUI();
-                document.getElementById('successMsg').textContent = `+${points} points`;
-                document.getElementById('successModal').classList.add('active');
-                playCelebration();
-                clearInterval(timerInterval);
+                
+                if (gameState.mode === 'curated') {
+                    gameState.solvedPuzzles[gameState.difficulty].push(gameState.currentPuzzleIndex);
+                }
+
+                if (gameState.enemyCurrentHP <= 0) {
+                    document.getElementById('successMsg').textContent = `Enemy Defeated! (+${points} pts)`;
+                    document.getElementById('successModal').classList.add('active');
+                    playCelebration();
+                    clearInterval(timerInterval);
+                } else {
+                    clearAll();
+                    gameState.timer += 15;
+                    if (gameState.timer > gameState.maxTime) gameState.maxTime = gameState.timer;
+                    document.getElementById('timer').textContent = gameState.timer;
+                    document.getElementById('progress').style.width = `${(gameState.timer / gameState.maxTime) * 100}%`;
+                    setTimeout(() => { loadPuzzle(); }, 300);
+                }
             } else {
                 playSound('wrong');
                 if (!gameState.isPractice) {
@@ -1682,6 +1707,7 @@
             document.getElementById('progressContainer').style.display = gameState.isPractice ? 'none' : 'block';
             document.getElementById('practiceNotice').style.display = gameState.isPractice ? 'block' : 'none';
             
+            spawnEnemy();
             loadPuzzle();
             startTimer();
         }
@@ -1758,11 +1784,28 @@
             }, 1000);
         }
 
+        function spawnEnemy() {
+            if (gameState.mode === 'curated') {
+                gameState.enemyMaxHP = gameState.difficulty === 'easy' ? 100 : gameState.difficulty === 'medium' ? 200 : 300;
+            } else {
+                gameState.enemyMaxHP = 100 * Math.min(3, Math.ceil(gameState.level / 3));
+            }
+            if (gameState.isPractice) gameState.enemyMaxHP = 100;
+            gameState.enemyCurrentHP = gameState.enemyMaxHP;
+            updateHealthBar();
+        }
+
+        function updateHealthBar() {
+            const bar = document.getElementById('monsterHealth');
+            if (bar) {
+                bar.style.width = `${Math.max(0, (gameState.enemyCurrentHP / gameState.enemyMaxHP) * 100)}%`;
+            }
+        }
+
         function nextLevel() {
             document.getElementById('successModal').classList.remove('active');
             
             if (gameState.mode === 'curated') {
-                gameState.solvedPuzzles[gameState.difficulty].push(gameState.currentPuzzleIndex);
                 if (gameState.solvedPuzzles[gameState.difficulty].length >= CURATED_PUZZLES[gameState.difficulty].length) {
                     document.getElementById('completeModal').classList.add('active');
                     return;
@@ -1774,6 +1817,7 @@
             gameState.timer = getTimerForLevel();
             gameState.maxTime = gameState.timer;
             document.getElementById('timer').textContent = gameState.timer;
+            spawnEnemy();
             loadPuzzle();
             startTimer();
         }
@@ -1785,6 +1829,7 @@
             gameState.maxTime = gameState.timer;
             document.getElementById('timer').textContent = gameState.timer;
             document.getElementById('progress').style.width = '100%';
+            spawnEnemy();
             startTimer();
         }
 
