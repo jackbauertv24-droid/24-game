@@ -156,6 +156,84 @@
             animation: defeat 1.2s ease-out forwards;
         }
 
+        .combat-effect {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+            width: 120px;
+            height: 120px;
+        }
+
+        .combat-effect::before,
+        .combat-effect::after {
+            content: '';
+            position: absolute;
+            display: none;
+        }
+
+        .combat-effect.slash-light::before {
+            display: block;
+            top: 50%; left: -20%;
+            width: 140%; height: 4px;
+            background: #00f0ff;
+            border-radius: 4px;
+            box-shadow: 0 0 10px #fff, 0 0 20px #00f0ff;
+            transform: translateY(-50%) rotate(30deg) scaleX(0);
+            animation: slashAnim 0.3s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+        }
+
+        .combat-effect.block::before {
+            display: block;
+            top: 10%; left: 10%;
+            width: 80%; height: 80%;
+            border-radius: 50%;
+            border: 4px solid #a0a0b0;
+            box-shadow: 0 0 15px #a0a0b0, inset 0 0 15px #a0a0b0;
+            background: rgba(255,255,255,0.1);
+            transform: scale(0.5);
+            opacity: 0;
+            animation: shieldAnim 0.3s ease-out forwards;
+        }
+
+        .combat-effect.slash-heavy::before,
+        .combat-effect.slash-heavy::after {
+            display: block;
+            top: 50%; left: -30%;
+            width: 160%; height: 6px;
+            background: #ff2a2a;
+            border-radius: 6px;
+            box-shadow: 0 0 15px #fff, 0 0 30px #ff2a2a;
+        }
+
+        .combat-effect.slash-heavy::before {
+            transform: translateY(-50%) rotate(45deg) scaleX(0);
+            animation: slashAnim 0.4s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+        }
+
+        .combat-effect.slash-heavy::after {
+            transform: translateY(-50%) rotate(-45deg) scaleX(0);
+            animation: slashAnim 0.4s cubic-bezier(0.1, 0.9, 0.2, 1) forwards 0.1s;
+        }
+
+        @keyframes slashAnim {
+            0% { transform: translateY(-50%) rotate(var(--rot, 30deg)) scaleX(0); opacity: 1; }
+            50% { transform: translateY(-50%) rotate(var(--rot, 30deg)) scaleX(1); opacity: 1; }
+            100% { transform: translateY(-50%) rotate(var(--rot, 30deg)) scaleX(1.2); opacity: 0; }
+        }
+        
+        .combat-effect.slash-light::before { --rot: 30deg; }
+        .combat-effect.slash-heavy::before { --rot: 45deg; }
+        .combat-effect.slash-heavy::after { --rot: -45deg; }
+
+        @keyframes shieldAnim {
+            0% { transform: scale(0.5); opacity: 0; }
+            40% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1.2); opacity: 0; }
+        }
+
         .monster-health-bar-container {
             width: 70%;
             max-width: 180px;
@@ -965,6 +1043,7 @@
 
                 <div class="monster-area" id="monsterArea">
                     <img src="assets/monster_golem.jpg" alt="Monster" class="monster-sprite" id="monsterSprite">
+                    <div id="combatEffect" class="combat-effect"></div>
                     <div class="monster-health-bar-container">
                         <div class="monster-health-bar" id="monsterHealth"></div>
                     </div>
@@ -1288,6 +1367,14 @@
             }
         }
 
+        function playCombatEffect(type) {
+            const effectEl = document.getElementById('combatEffect');
+            if (!effectEl) return;
+            const newEffect = effectEl.cloneNode(true);
+            newEffect.className = 'combat-effect ' + type;
+            effectEl.parentNode.replaceChild(newEffect, effectEl);
+        }
+
         function playCelebration() {
             const scene = document.getElementById('celebrationScene');
             scene.querySelectorAll('.firework-particle').forEach(particle => particle.remove());
@@ -1503,6 +1590,8 @@
                         sprite.classList.add(isSolvable ? 'hit-light' : 'dodge');
                         if (!isSolvable) playSound('wrong'); // tiny sound hint
                     }
+                    
+                    playCombatEffect(isSolvable ? 'slash-light' : 'block');
                 }
             }
         }
@@ -1716,6 +1805,8 @@
                     void sprite.offsetWidth;
                     sprite.classList.add('hit');
                 }
+                
+                playCombatEffect('slash-heavy');
                 
                 gameState.enemyCurrentHP -= 100;
                 updateHealthBar();
