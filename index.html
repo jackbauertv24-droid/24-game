@@ -1379,17 +1379,47 @@
                     break;
                     
                 case 'correct':
-                    // Slash + blade ring
-                    playNoise(0.2, 'highpass', 2000);
-                    const oscS = audioCtx.createOscillator();
-                    const gainS = audioCtx.createGain();
-                    oscS.type = 'sawtooth';
-                    oscS.frequency.setValueAtTime(800, t);
-                    oscS.frequency.exponentialRampToValueAtTime(300, t + 0.3);
-                    gainS.gain.setValueAtTime(0.4, t);
-                    gainS.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
-                    oscS.connect(gainS); gainS.connect(audioCtx.destination);
-                    oscS.start(); oscS.stop(t + 0.3);
+                    // Swoosh (Air slash)
+                    const swooshDur = 0.2;
+                    const bSize = audioCtx.sampleRate * swooshDur;
+                    const sBuffer = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
+                    const sData = sBuffer.getChannelData(0);
+                    for (let i = 0; i < bSize; i++) sData[i] = Math.random() * 2 - 1;
+                    const sNoise = audioCtx.createBufferSource();
+                    sNoise.buffer = sBuffer;
+                    
+                    const sFilter = audioCtx.createBiquadFilter();
+                    sFilter.type = 'bandpass';
+                    sFilter.Q.value = 1.5;
+                    sFilter.frequency.setValueAtTime(4000, t);
+                    sFilter.frequency.exponentialRampToValueAtTime(400, t + swooshDur);
+                    
+                    const sGain = audioCtx.createGain();
+                    sGain.gain.setValueAtTime(0, t);
+                    sGain.gain.linearRampToValueAtTime(1.5, t + 0.05);
+                    sGain.gain.exponentialRampToValueAtTime(0.01, t + swooshDur);
+                    
+                    sNoise.connect(sFilter); sFilter.connect(sGain); sGain.connect(audioCtx.destination);
+                    sNoise.start();
+                    
+                    // Metallic Ring (Blade)
+                    const ringS1 = audioCtx.createOscillator();
+                    const ringS2 = audioCtx.createOscillator();
+                    const rGain = audioCtx.createGain();
+                    
+                    ringS1.type = 'triangle';
+                    ringS2.type = 'triangle';
+                    ringS1.frequency.setValueAtTime(1200, t);
+                    ringS2.frequency.setValueAtTime(1220, t);
+                    
+                    rGain.gain.setValueAtTime(0, t);
+                    rGain.gain.linearRampToValueAtTime(0.3, t + 0.02);
+                    rGain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+                    
+                    ringS1.connect(rGain); ringS2.connect(rGain);
+                    rGain.connect(audioCtx.destination);
+                    ringS1.start(); ringS2.start();
+                    ringS1.stop(t + 0.25); ringS2.stop(t + 0.25);
                     break;
                     
                 case 'wrong':
