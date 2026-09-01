@@ -144,6 +144,18 @@
             animation: hit 0.4s ease-out;
         }
 
+        .monster-sprite.hit-light {
+            animation: hitLight 0.3s ease-out;
+        }
+
+        .monster-sprite.dodge {
+            animation: dodge 0.3s ease-out;
+        }
+
+        .monster-sprite.defeated {
+            animation: defeat 1.2s ease-out forwards;
+        }
+
         .monster-health-bar-container {
             width: 70%;
             max-width: 180px;
@@ -177,6 +189,24 @@
             60% { transform: scale(1.05) translateX(-5px); filter: brightness(1); }
             80% { transform: scale(1) translateX(5px); }
             100% { transform: scale(1) translateX(0); }
+        }
+
+        @keyframes hitLight {
+            0% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(0.95) translateY(-2px); filter: brightness(1.5) drop-shadow(0 0 10px white); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+
+        @keyframes dodge {
+            0% { transform: translateX(0); filter: brightness(1); }
+            50% { transform: translateX(-15px) rotate(-5deg); filter: grayscale(1) opacity(0.7); }
+            100% { transform: translateX(0); filter: brightness(1); }
+        }
+
+        @keyframes defeat {
+            0% { transform: scale(1); filter: brightness(2) hue-rotate(-50deg); opacity: 1; }
+            30% { transform: scale(1.1); filter: brightness(3) drop-shadow(0 0 20px red); opacity: 1; }
+            100% { transform: scale(0) translateY(50px) rotate(180deg); opacity: 0; }
         }
 
         .gamepad {
@@ -1323,7 +1353,12 @@
 
         function findSolutions(nums, allowedOps = ['+', '−', '×', '÷']) {
             const results = [];
-            const ops = allowedOps;
+            const opCount = nums.length - 1;
+            if (opCount < 0) return [];
+            if (opCount === 0) {
+                if (nums[0] === 24) results.push('24 = 24');
+                return results;
+            }
             
             function permute(arr) {
                 if (arr.length === 0) return [[]];
@@ -1336,9 +1371,9 @@
             }
 
             function generateOps(count) {
-                if (count === 1) return ops.map(o => [o]);
+                if (count === 1) return allowedOps.map(o => [o]);
                 const result = [];
-                for (const first of ops) {
+                for (const first of allowedOps) {
                     for (const rest of generateOps(count - 1)) result.push([first, ...rest]);
                 }
                 return result;
@@ -1355,14 +1390,22 @@
             }
 
             for (const numPerm of permute(nums)) {
-                for (const opCombo of generateOps(3)) {
-                    let result = evalOp(numPerm[0], numPerm[1], opCombo[0]);
-                    if (result === null) continue;
-                    result = evalOp(result, numPerm[2], opCombo[1]);
-                    if (result === null) continue;
-                    result = evalOp(result, numPerm[3], opCombo[2]);
-                    if (result === 24) {
-                        results.push(`${numPerm[0]} ${opCombo[0]} ${numPerm[1]} ${opCombo[1]} ${numPerm[2]} ${opCombo[2]} ${numPerm[3]} = 24`);
+                for (const opCombo of generateOps(opCount)) {
+                    let result = numPerm[0];
+                    let str = `${numPerm[0]}`;
+                    let isValid = true;
+                    
+                    for (let i = 0; i < opCount; i++) {
+                        result = evalOp(result, numPerm[i + 1], opCombo[i]);
+                        if (result === null) {
+                            isValid = false;
+                            break;
+                        }
+                        str += ` ${opCombo[i]} ${numPerm[i + 1]}`;
+                    }
+                    
+                    if (isValid && result === 24) {
+                        results.push(`${str} = 24`);
                     }
                 }
             }
@@ -1445,6 +1488,23 @@
             }
             renderNumbers();
             updateExpression();
+            
+            if (selectedNumbers.length > 1 && selectedNumbers.length <= 4) {
+                const calc = getIntermediateCalculation();
+                if (calc.status === 'evaluated' || calc.status === 'target' || calc.status === 'mismatch' || calc.status === 'single') {
+                    const unused = currentNumbers.filter((n, i) => !selectedNumbers.includes(i)).map(n => n.value);
+                    unused.push(calc.value);
+                    const isSolvable = findSolutions(unused).length > 0;
+                    
+                    const sprite = document.getElementById('monsterSprite');
+                    if (sprite) {
+                        sprite.classList.remove('hit-light', 'dodge');
+                        void sprite.offsetWidth; // trigger reflow
+                        sprite.classList.add(isSolvable ? 'hit-light' : 'dodge');
+                        if (!isSolvable) playSound('wrong'); // tiny sound hint
+                    }
+                }
+            }
         }
 
         function selectOperator(op) {
@@ -1677,10 +1737,21 @@
                 }
 
                 if (gameState.enemyCurrentHP <= 0) {
-                    document.getElementById('successMsg').textContent = `Enemy Defeated! (+${points} pts)`;
-                    document.getElementById('successModal').classList.add('active');
-                    playCelebration();
+                    gameState.enemyCurrentHP = 0;
+                    updateHealthBar();
                     clearInterval(timerInterval);
+                    
+                    if (sprite) {
+                        sprite.classList.remove('hit', 'hit-light', 'dodge');
+                        void sprite.offsetWidth;
+                        sprite.classList.add('defeated');
+                    }
+                    
+                    document.getElementById('successMsg').textContent = `Enemy Defeated! (+${points} pts)`;
+                    setTimeout(() => {
+                        document.getElementById('successModal').classList.add('active');
+                        playCelebration();
+                    }, 1200);
                 } else {
                     clearAll();
                     gameState.timer += 15;
@@ -1846,6 +1917,12 @@
             }
             if (gameState.isPractice) gameState.enemyMaxHP = 100;
             gameState.enemyCurrentHP = gameState.enemyMaxHP;
+            
+            const sprite = document.getElementById('monsterSprite');
+            if (sprite) {
+                sprite.classList.remove('defeated', 'hit', 'hit-light', 'dodge');
+            }
+            
             updateHealthBar();
         }
 
