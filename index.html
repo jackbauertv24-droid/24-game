@@ -919,100 +919,100 @@
         
         const CURATED_PUZZLES = {
             easy: [
-                { nums: [3, 4, 7, 10], hint: "Use + and - to reach 24" },
-                { nums: [2, 5, 8, 9], hint: "Use + and - to reach 24" },
-                { nums: [4, 8, 10, 10], hint: "Use + and - to reach 24" },
-                { nums: [2, 6, 6, 10], hint: "Use + and - to reach 24" },
-                { nums: [2, 4, 8, 10], hint: "Use + and - to reach 24" },
-                { nums: [3, 8, 9, 10], hint: "Use + and - to reach 24" },
-                { nums: [2, 4, 9, 9], hint: "Use + and - to reach 24" },
-                { nums: [2, 8, 9, 9], hint: "Use + and - to reach 24" },
-                { nums: [1, 4, 9, 10], hint: "Use + and - to reach 24" },
-                { nums: [1, 8, 8, 9], hint: "Use + and - to reach 24" },
-                { nums: [2, 6, 8, 8], hint: "Use + and - to reach 24" },
-                { nums: [4, 5, 6, 9], hint: "Use + and - to reach 24" },
-                { nums: [3, 3, 8, 10], hint: "Use + and - to reach 24" },
-                { nums: [1, 6, 8, 9], hint: "Use + and - to reach 24" },
-                { nums: [2, 7, 9, 10], hint: "Use + and - to reach 24" },
-                { nums: [1, 6, 9, 10], hint: "Use + and - to reach 24" },
-                { nums: [5, 5, 7, 7], hint: "Use + and - to reach 24" },
-                { nums: [2, 7, 7, 8], hint: "Use + and - to reach 24" },
-                { nums: [1, 7, 8, 10], hint: "Use + and - to reach 24" },
-                { nums: [4, 9, 9, 10], hint: "Use + and - to reach 24" },
-                { nums: [3, 5, 6, 10], hint: "Use + and - to reach 24" },
-                { nums: [2, 3, 9, 10], hint: "Use + and - to reach 24" },
-                { nums: [1, 5, 8, 10], hint: "Use + and - to reach 24" },
-                { nums: [3, 5, 7, 9], hint: "Use + and - to reach 24" },
-                { nums: [3, 6, 7, 8], hint: "Use + and - to reach 24" },
-                { nums: [4, 5, 7, 8], hint: "Use + and - to reach 24" },
-                { nums: [3, 4, 8, 9], hint: "Use + and - to reach 24" },
-                { nums: [1, 3, 10, 10], hint: "Use + and - to reach 24" },
-                { nums: [5, 5, 5, 9], hint: "Use + and - to reach 24" },
-                { nums: [4, 5, 5, 10], hint: "Use + and - to reach 24" }
+                { nums: [3, 4, 7, 10] },
+                { nums: [2, 5, 8, 9] },
+                { nums: [4, 8, 10, 10] },
+                { nums: [2, 6, 6, 10] },
+                { nums: [2, 4, 8, 10] },
+                { nums: [3, 8, 9, 10] },
+                { nums: [2, 4, 9, 9] },
+                { nums: [2, 8, 9, 9] },
+                { nums: [1, 4, 9, 10] },
+                { nums: [1, 8, 8, 9] },
+                { nums: [2, 6, 8, 8] },
+                { nums: [4, 5, 6, 9] },
+                { nums: [3, 3, 8, 10] },
+                { nums: [1, 6, 8, 9] },
+                { nums: [2, 7, 9, 10] },
+                { nums: [1, 6, 9, 10] },
+                { nums: [5, 5, 7, 7] },
+                { nums: [2, 7, 7, 8] },
+                { nums: [1, 7, 8, 10] },
+                { nums: [4, 9, 9, 10] },
+                { nums: [3, 5, 6, 10] },
+                { nums: [2, 3, 9, 10] },
+                { nums: [1, 5, 8, 10] },
+                { nums: [3, 5, 7, 9] },
+                { nums: [3, 6, 7, 8] },
+                { nums: [4, 5, 7, 8] },
+                { nums: [3, 4, 8, 9] },
+                { nums: [1, 3, 10, 10] },
+                { nums: [5, 5, 5, 9] },
+                { nums: [4, 5, 5, 10] }
             ],
             medium: [
-                { nums: [3, 5, 7, 8], hint: "8÷4=2, 3×2=6, 6×4=24" },
-                { nums: [4, 5, 6, 7], hint: "7-5=2, 6÷2=3, 4×3=12, 12×2=24" },
-                { nums: [1, 2, 3, 4], hint: "1×2=2, 2×3=6, 6×4=24" },
-                { nums: [3, 6, 7, 9], hint: "9÷3=3, 7-3=4, 6×4=24" },
-                { nums: [4, 5, 7, 9], hint: "7-5=2, 9-2=7, 4×... " },
-                { nums: [5, 7, 8, 9], hint: "9-7=2, 8÷2=4, 5×4=20, 20+4=24" },
-                { nums: [3, 4, 8, 9], hint: "9-8=1, 4-1=3, 3×8=24" },
-                { nums: [4, 5, 8, 9], hint: "9-5=4, 4×4=16, 16+8=24" },
-                { nums: [3, 4, 8, 9], hint: "9-8=1, 4-1=3, 3×... " },
-                { nums: [3, 7, 8, 9], hint: "9-7=2, 8÷2=4, 3×4=12, 12×2=24" },
-                { nums: [2, 3, 5, 8], hint: "8-5=3, 3×3=9, 9+... " },
-                { nums: [5, 6, 8, 9], hint: "9-6=3, 8-3=5, 5×5=25, 25-... " },
-                { nums: [1, 3, 4, 9], hint: "9-3=6, 4-1=3, 6×... " },
-                { nums: [4, 7, 8, 9], hint: "9-8=1, 7+1=8, 8×3=24" },
-                { nums: [6, 6, 8, 9], hint: "9-6=3, 8×3=24" },
-                { nums: [2, 5, 8, 9], hint: "9-5=4, 8-2=6, 4×... " },
-                { nums: [4, 5, 9, 10], hint: "10-5=5, 5×... " },
-                { nums: [5, 7, 9, 10], hint: "10-7=3, 9÷3=3, 5×3=15, 15+... " },
-                { nums: [3, 8, 9, 10], hint: "10-8=2, 9-2=7, 7+... " },
-                { nums: [4, 6, 9, 10], hint: "10-6=4, 9-4=5, 5×... " },
-                { nums: [5, 6, 9, 10], hint: "10+6=16, 16+... " },
-                { nums: [4, 5, 6, 9], hint: "9-5=4, 6-4=2, 2×... " },
-                { nums: [3, 4, 5, 12], hint: "12-5=7, 7-4=3, 3×... " },
-                { nums: [2, 4, 10, 11], hint: "11×4=44, 10×2=20, 44−20=24" },
-                { nums: [5, 7, 10, 11], hint: "11-7=4, 10-4=6, 6×... " },
-                { nums: [6, 8, 10, 11], hint: "11-10=1, 8-1=7, 7+... " },
-                { nums: [3, 5, 11, 11], hint: "11-5=6, 11-6=5, 5×... " },
-                { nums: [3, 4, 6, 11], hint: "11-6=5, 4+... " },
-                { nums: [1, 4, 8, 11], hint: "11-8=3, 4-1=3, 8×... " },
-                { nums: [6, 9, 11, 12], hint: "12-6=6, 9-6=3, 11-3=8, 8×... " }
+                { nums: [3, 5, 7, 8] },
+                { nums: [4, 5, 6, 7] },
+                { nums: [1, 2, 3, 4] },
+                { nums: [3, 6, 7, 9] },
+                { nums: [4, 5, 7, 9] },
+                { nums: [5, 7, 8, 9] },
+                { nums: [3, 4, 8, 9] },
+                { nums: [4, 5, 8, 9] },
+                { nums: [3, 4, 8, 9] },
+                { nums: [3, 7, 8, 9] },
+                { nums: [2, 3, 5, 8] },
+                { nums: [5, 6, 8, 9] },
+                { nums: [1, 3, 4, 9] },
+                { nums: [4, 7, 8, 9] },
+                { nums: [6, 6, 8, 9] },
+                { nums: [2, 5, 8, 9] },
+                { nums: [4, 5, 9, 10] },
+                { nums: [5, 7, 9, 10] },
+                { nums: [3, 8, 9, 10] },
+                { nums: [4, 6, 9, 10] },
+                { nums: [5, 6, 9, 10] },
+                { nums: [4, 5, 6, 9] },
+                { nums: [3, 4, 5, 12] },
+                { nums: [2, 4, 10, 11] },
+                { nums: [5, 7, 10, 11] },
+                { nums: [6, 8, 10, 11] },
+                { nums: [3, 5, 11, 11] },
+                { nums: [3, 4, 6, 11] },
+                { nums: [1, 4, 8, 11] },
+                { nums: [6, 9, 11, 12] }
             ],
             hard: [
-                { nums: [5, 8, 10, 12], hint: "12÷6=2, 10-2=8, 8×3=24" },
-                { nums: [6, 7, 10, 12], hint: "12÷4=3, 7+... " },
-                { nums: [7, 8, 11, 12], hint: "12-11=1, 8-1=7, 7+... " },
-                { nums: [5, 5, 12, 13], hint: "13-5=8, 12-5=7, 8+... " },
-                { nums: [4, 7, 10, 11], hint: "11-7=4, 10-4=6, 4×... " },
-                { nums: [8, 9, 12, 13], hint: "13-12=1, 9-1=8, 8×... " },
-                { nums: [6, 8, 11, 13], hint: "13-11=2, 8÷2=4, 6×4=24" },
-                { nums: [7, 10, 12, 13], hint: "13-12=1, 10+... " },
-                { nums: [1, 3, 9, 12], hint: "12-9=3, 3+1=4, 3×... " },
-                { nums: [9, 10, 11, 13], hint: "13-11=2, 10-2=8, 9-8=1, 24×1=24" },
-                { nums: [6, 7, 12, 13], hint: "13-12=1, 7-1=6, 6×4=24" },
-                { nums: [7, 8, 12, 13], hint: "13-12=1, 8-1=7, 7+... " },
-                { nums: [8, 9, 12, 13], hint: "13-12=1, 9-1=8, 8×... " },
-                { nums: [9, 10, 12, 13], hint: "13-12=1, 10-1=9, 9+... " },
-                { nums: [6, 11, 12, 13], hint: "13-12=1, 11-1=10, 10+... " },
-                { nums: [7, 10, 11, 13], hint: "13-11=2, 10-2=8, 8×... " },
-                { nums: [2, 4, 8, 10], hint: "10-8=2, 4-2=2, 2×... " },
-                { nums: [9, 10, 11, 12], hint: "12-11=1, 10-1=9, 9+... " },
-                { nums: [10, 11, 12, 13], hint: "13-12=1, 11-1=10, 10+... " },
-                { nums: [6, 9, 11, 12], hint: "12-11=1, 9-1=8, 8×... " },
-                { nums: [4, 7, 8, 12], hint: "12-8=4, 7-4=3, 4×... " },
-                { nums: [1, 4, 8, 11], hint: "11-8=3, 4-1=3, 8×... " },
-                { nums: [6, 8, 9, 12], hint: "12-8=4, 9-4=5, 5×... " },
-                { nums: [7, 9, 10, 12], hint: "12-10=2, 9-2=7, 7+... " },
-                { nums: [4, 6, 8, 10], hint: "10-8=2, 6-2=4, 4×... " },
-                { nums: [1, 3, 8, 12], hint: "12-8=4, 3-1=2, 4×... " },
-                { nums: [6, 9, 10, 11], hint: "11-10=1, 9-1=8, 8×... " },
-                { nums: [2, 4, 7, 11], hint: "11-7=4, 4-2=2, 7+... " },
-                { nums: [8, 9, 10, 12], hint: "12-10=2, 9-2=7, 7+... " },
-                { nums: [1, 3, 9, 11], hint: "11-9=2, 3-1=2, 2×... " },
+                { nums: [5, 8, 10, 12] },
+                { nums: [6, 7, 10, 12] },
+                { nums: [7, 8, 11, 12] },
+                { nums: [5, 5, 12, 13] },
+                { nums: [4, 7, 10, 11] },
+                { nums: [8, 9, 12, 13] },
+                { nums: [6, 8, 11, 13] },
+                { nums: [7, 10, 12, 13] },
+                { nums: [1, 3, 9, 12] },
+                { nums: [9, 10, 11, 13] },
+                { nums: [6, 7, 12, 13] },
+                { nums: [7, 8, 12, 13] },
+                { nums: [8, 9, 12, 13] },
+                { nums: [9, 10, 12, 13] },
+                { nums: [6, 11, 12, 13] },
+                { nums: [7, 10, 11, 13] },
+                { nums: [2, 4, 8, 10] },
+                { nums: [9, 10, 11, 12] },
+                { nums: [10, 11, 12, 13] },
+                { nums: [6, 9, 11, 12] },
+                { nums: [4, 7, 8, 12] },
+                { nums: [1, 4, 8, 11] },
+                { nums: [6, 8, 9, 12] },
+                { nums: [7, 9, 10, 12] },
+                { nums: [4, 6, 8, 10] },
+                { nums: [1, 3, 8, 12] },
+                { nums: [6, 9, 10, 11] },
+                { nums: [2, 4, 7, 11] },
+                { nums: [8, 9, 10, 12] },
+                { nums: [1, 3, 9, 11] },
             ]
         };
 
@@ -1027,7 +1027,7 @@
             maxTime: 60,
             isPractice: false,
             currentPuzzleIndex: 0,
-            solvedPuzzles: [],
+            solvedPuzzles: { easy: [], medium: [], hard: [] },
             started: false,
             solvedCount: 0,
             playedCount: 0,
@@ -1086,7 +1086,10 @@
         let audioCtx = null;
 
         function initAudio() {
-            if (!audioCtx) audioCtx = new AudioContext();
+            if (!AudioContext) return;
+            if (!audioCtx) {
+                try { audioCtx = new AudioContext(); } catch { return; }
+            }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
@@ -1292,7 +1295,8 @@
         }
 
         function selectNumber(idx) {
-            if (!gameState.started || currentNumbers[idx].used || selectedNumbers.length !== selectedOperators.length) return;
+            if (!gameState.started || selectedNumbers.length !== selectedOperators.length) return;
+            if (currentNumbers[idx].used && !selectedNumbers.includes(idx)) return;
             playSound('select');
             
             if (selectedNumbers.includes(idx)) {
@@ -1510,13 +1514,15 @@
             
             if (result === 24) {
                 playSound('correct');
-                gameState.playedCount++;
-                gameState.solvedCount++;
+                if (!gameState.isPractice) {
+                    gameState.playedCount++;
+                    gameState.solvedCount++;
+                    gameState.bestStreak = Math.max(gameState.bestStreak, gameState.streak);
+                    saveStats();
+                }
                 const points = Math.round((100 + (gameState.timer * 2)) * gameState.multiplier);
                 gameState.score += points;
                 gameState.streak++;
-                gameState.bestStreak = Math.max(gameState.bestStreak, gameState.streak);
-                saveStats();
                 updateMultiplier();
                 updateUI();
                 document.getElementById('successMsg').textContent = `+${points} points`;
@@ -1525,8 +1531,10 @@
                 clearInterval(timerInterval);
             } else {
                 playSound('wrong');
-                gameState.playedCount++;
-                saveStats();
+                if (!gameState.isPractice) {
+                    gameState.playedCount++;
+                    saveStats();
+                }
                 clearInterval(timerInterval);
                 gameState.streak = 0;
                 gameState.multiplier = 1.0;
@@ -1603,13 +1611,14 @@
             
             if (gameState.mode === 'curated') {
                 const puzzles = CURATED_PUZZLES[gameState.difficulty];
+                const solved = gameState.solvedPuzzles[gameState.difficulty];
                 let idx = gameState.currentPuzzleIndex;
                 
-                while (gameState.solvedPuzzles.includes(idx) && gameState.solvedPuzzles.length < puzzles.length) {
+                while (solved.includes(idx) && solved.length < puzzles.length) {
                     idx = (idx + 1) % puzzles.length;
                 }
                 
-                if (gameState.solvedPuzzles.length >= puzzles.length) {
+                if (solved.length >= puzzles.length) {
                     document.getElementById('completeModal').classList.add('active');
                     return;
                 }
@@ -1651,6 +1660,8 @@
                 
                 if (gameState.timer <= 0) {
                     gameState.timer = 0;
+                    gameState.started = false;
+                    cancelAutoSubmit();
                     clearInterval(timerInterval);
                     document.getElementById('timer').textContent = 0;
                     document.getElementById('progress').style.width = '0%';
@@ -1670,8 +1681,8 @@
             document.getElementById('successModal').classList.remove('active');
             
             if (gameState.mode === 'curated') {
-                gameState.solvedPuzzles.push(gameState.currentPuzzleIndex);
-                if (gameState.solvedPuzzles.length >= CURATED_PUZZLES[gameState.difficulty].length) {
+                gameState.solvedPuzzles[gameState.difficulty].push(gameState.currentPuzzleIndex);
+                if (gameState.solvedPuzzles[gameState.difficulty].length >= CURATED_PUZZLES[gameState.difficulty].length) {
                     document.getElementById('completeModal').classList.add('active');
                     return;
                 }
@@ -1708,7 +1719,11 @@
             const preservedStats = {
                 solvedCount: gameState.solvedCount,
                 playedCount: gameState.playedCount,
-                bestStreak: gameState.bestStreak
+                bestStreak: gameState.bestStreak,
+                mode: gameState.mode,
+                difficulty: gameState.difficulty,
+                isPractice: gameState.isPractice,
+                solvedPuzzles: gameState.solvedPuzzles
             };
             clearInterval(timerInterval);
             timerInterval = null;
@@ -1717,17 +1732,17 @@
             selectedOperators = [];
             currentSolution = null;
             gameState = {
-                mode: 'curated',
-                difficulty: 'easy',
+                mode: preservedStats.mode,
+                difficulty: preservedStats.difficulty,
                 level: 1,
                 score: 0,
                 streak: 0,
                 multiplier: 1.0,
                 timer: 60,
                 maxTime: 60,
-                isPractice: false,
+                isPractice: preservedStats.isPractice,
                 currentPuzzleIndex: 0,
-                solvedPuzzles: [],
+                solvedPuzzles: preservedStats.solvedPuzzles,
                 started: false,
                 solvedCount: preservedStats.solvedCount,
                 playedCount: preservedStats.playedCount,
