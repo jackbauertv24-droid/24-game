@@ -100,7 +100,24 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .display-zone {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .gamepad {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            margin-top: auto;
         }
 
         .numbers-row {
@@ -163,7 +180,15 @@
             }
 
             .game-area {
-                gap: 10px;
+                gap: 8px;
+            }
+
+            .display-zone {
+                gap: 6px;
+            }
+
+            .gamepad {
+                gap: 8px;
             }
 
             .numbers-row, .operators-row {
@@ -177,6 +202,8 @@
             }
 
             .expression-area {
+                min-height: 66px;
+                padding: 12px;
                 overflow-x: auto;
                 justify-content: flex-start;
             }
@@ -186,6 +213,7 @@
                 max-width: none;
                 justify-content: flex-start;
                 white-space: nowrap;
+                font-size: 24px;
             }
 
             .operator-btn {
@@ -197,15 +225,6 @@
             .action-btn {
                 padding: 13px 8px;
                 font-size: 14px;
-            }
-
-            .expression-area {
-                min-height: 66px;
-                padding: 12px;
-            }
-
-            .expression {
-                font-size: 24px;
             }
         }
 
@@ -724,37 +743,41 @@
         </div>
 
         <div class="game-area">
-            <div class="progress-bar" id="progressContainer">
-                <div class="progress-fill" id="progress" style="width: 100%"></div>
-            </div>
+            <div class="display-zone">
+                <div class="progress-bar" id="progressContainer">
+                    <div class="progress-fill" id="progress" style="width: 100%"></div>
+                </div>
 
-            <div class="practice-notice" id="practiceNotice" style="display: none;">
-                🎯 Practice Mode - No Timer
-            </div>
+                <div class="practice-notice" id="practiceNotice" style="display: none;">
+                    🎯 Practice Mode - No Timer
+                </div>
 
-            <div class="info-notice">
-                💡 Left-to-right evaluation • Division must be exact (no fractions)
-            </div>
+                <div class="expression-area" id="expressionArea" aria-label="Equation. Tap a token to edit that step.">
+                    <div class="expression" id="expression">
+                        <span class="expression-placeholder">Start with any card</span>
+                    </div>
+                </div>
 
-            <div class="numbers-row" id="numbers"></div>
+                <div class="hint-text" id="hint"></div>
 
-            <div class="expression-area" id="expressionArea" aria-label="Equation. Tap a token to edit that step.">
-                <div class="expression" id="expression">
-                    <span class="expression-placeholder">Tap numbers & operators</span>
+                <div class="info-notice">
+                    💡 Left-to-right evaluation • Division must be exact (no fractions)
                 </div>
             </div>
 
-            <div class="hint-text" id="hint"></div>
+            <div class="gamepad" aria-label="Game controls">
+                <div class="numbers-row" id="numbers"></div>
 
-            <div class="operators-row" id="operators"></div>
+                <div class="operators-row" id="operators"></div>
 
-            <div class="move-tools" aria-label="Equation controls">
-                <button class="move-btn" id="undoBtn" type="button" aria-label="Undo last move">↩ Undo</button>
-                <button class="move-btn" id="clearBtn" type="button" aria-label="Clear equation">⌫ Clear</button>
-            </div>
+                <div class="move-tools" aria-label="Equation controls">
+                    <button class="move-btn" id="undoBtn" type="button" aria-label="Undo last move">↩ Undo</button>
+                    <button class="move-btn" id="clearBtn" type="button" aria-label="Clear equation">⌫ Clear</button>
+                </div>
 
-            <div class="actions-row">
-                <button class="action-btn btn-hint" id="hintBtn">💡 Hint</button>
+                <div class="actions-row">
+                    <button class="action-btn btn-hint" id="hintBtn">💡 Hint</button>
+                </div>
             </div>
 
             <button class="stats-toggle" id="statsToggle" type="button" aria-expanded="false" aria-controls="statsPanel">View stats</button>
