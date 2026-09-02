@@ -2114,6 +2114,8 @@
                 const activeEnemies = ENEMIES.filter(e => !e.hidden);
                 const enemyType = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
                 sprite.style.backgroundImage = `url('${enemyType.url}')`;
+                sprite.style.transition = 'opacity 0.4s';
+                sprite.style.opacity = '1';
             }
             
             updateHealthBar();
@@ -2365,12 +2367,8 @@
         window.glWalk = () => { 
             const sprite = document.getElementById('monsterSprite');
             if(sprite) {
-                sprite.style.transition = 'opacity 0.5s';
+                sprite.style.transition = 'opacity 0.4s';
                 sprite.style.opacity = '0';
-                setTimeout(() => {
-                    sprite.classList.remove('hit', 'hit-light', 'dodge', 'defeated');
-                    sprite.style.opacity = '1';
-                }, 500);
             }
         };
         
