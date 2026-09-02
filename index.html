@@ -1144,6 +1144,26 @@
         .floating-text { position: absolute; font-weight: bold; font-size: 24px; pointer-events: none; animation: floatUp 1.2s ease-out forwards; z-index: 100; text-shadow: 0 2px 4px rgba(0,0,0,0.8); white-space: nowrap; }
         @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -100px); } }
     </style>
+    
+    <div class="modal" id="difficultyModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2>⚔️ Campaign Difficulty</h2>
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                <button class="mode-btn" onclick="selectDifficulty('easy')" style="text-align: left; background: rgba(85, 255, 85, 0.1); border-color: #55ff55;">
+                    🟢 Easy
+                    <small>Numbers 1-10. Operators: <b>+ , −</b></small>
+                </button>
+                <button class="mode-btn" onclick="selectDifficulty('medium')" style="text-align: left; background: rgba(255, 255, 85, 0.1); border-color: #ffff55;">
+                    🟡 Medium
+                    <small>Numbers 1-13. Operators: <b>+ , − , ×</b></small>
+                </button>
+                <button class="mode-btn" onclick="selectDifficulty('hard')" style="text-align: left; background: rgba(255, 85, 85, 0.1); border-color: #ff5555;">
+                    🔴 Hard
+                    <small>Numbers 1-13. Operators: <b>+ , − , × , ÷</b></small>
+                </button>
+            </div>
+        </div>
+    </div>
     <div class="modal" id="classModal">
         <div class="modal-content" style="max-width: 600px;">
             <h2>Select Your Class</h2>
@@ -1210,16 +1230,9 @@
                 <small>No timer, unlimited hints</small>
             </button>
             
-            <div id="difficultySelect" style="display: block;">
-                <p style="margin-top: 16px;">Select Difficulty:</p>
-                <div class="difficulty-selector">
-                    <button class="difficulty-btn selected" data-diff="easy">Easy</button>
-                    <button class="difficulty-btn" data-diff="medium">Medium</button>
-                    <button class="difficulty-btn" data-diff="hard">Hard</button>
-                </div>
-            </div>
             
-            <button class="modal-btn primary" id="startGameBtn" style="margin-top: 16px;">Start Campaign</button>
+            
+            
         </div>
     </div>
 
@@ -2639,15 +2652,9 @@
             startGame();
         };
 
-        document.querySelectorAll('.difficulty-btn').forEach(btn => {
-            btn.onclick = function() {
-                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('selected'));
-                this.classList.add('selected');
-                gameState.difficulty = this.dataset.diff;
-            };
-        });
+        
 
-        document.getElementById('startGameBtn').onclick = startGame;
+        
         document.getElementById('nextBtn').onclick = nextLevel;
         document.getElementById('retryBtn').onclick = retryLevel;
         document.getElementById('restartBtn').onclick = resetGame;
