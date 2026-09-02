@@ -1302,6 +1302,10 @@
                 showFloatingText('Intimidate!', '#ff5555', 'monsterArea');
                 playCombatEffect('block');
                 clearAll();
+                if (gameState.mode === 'campaign') {
+                    const puzzles = CAMPAIGN_PUZZLES[gameState.difficulty];
+                    gameState.currentPuzzleIndex = (gameState.currentPuzzleIndex + 1) % puzzles.length;
+                }
                 loadPuzzle();
             } else if (cls === 'rogue') {
                 if (gameState.skillUses.level >= 3) {
@@ -1358,6 +1362,10 @@
                     showFloatingText('No easier swap possible!', '#ff5555', 'monsterArea');
                 }
             } else if (cls === 'wizard') {
+                if (document.getElementById('hint').classList.contains('visible')) {
+                    showFloatingText('Already active!', '#5555ff', 'monsterArea');
+                    return;
+                }
                 if (gameState.timer <= 5 && !gameState.isPractice) {
                     showFloatingText('Not enough time!', '#ff5555', 'monsterArea');
                     return;
