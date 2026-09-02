@@ -133,8 +133,8 @@
         }
 
         .monster-sprite {
-            width: 140px;
-            height: 140px;
+            width: 250px;
+            height: 250px;
             background-image: url('assets/golem_spritesheet.jpg');
             background-size: 400% 400%; /* 4 columns, 4 rows */
             background-position: 0% 0%;
@@ -1048,13 +1048,13 @@
                     </div>
                 </div>
 
-                <div class="expression-area" id="expressionArea" aria-label="Equation. Tap a token to edit that step.">
+                <div class="expression-area" id="expressionArea" onclick="clearAll()" style="cursor:pointer;" title="Tap to clear" aria-label="Equation. Tap a token to edit that step.">
                     
                 <div style="font-size: 13px; color: #fff; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 12px; text-align: center; margin-bottom: 8px;">
                     ⚠️ Math is evaluated strictly Left-to-Right!
                 </div>
                 <div class="expression" id="expression">
-                        <span class="expression-placeholder">Start with any card</span>
+                        <span class="expression-placeholder">Start with any card (Tap here to clear)</span>
                     </div>
                 </div>
 
@@ -1963,11 +1963,8 @@
             document.getElementById('practiceNotice').style.display = gameState.isPractice ? 'block' : 'none';
             
             spawnEnemy();
-            window.glWalk();
-            setTimeout(() => {
-                loadPuzzle();
-                startTimer();
-            }, 2500);
+            loadPuzzle();
+            startTimer();
         }
 
         function loadPuzzle() {
@@ -2086,7 +2083,7 @@
                 spawnEnemy();
                 loadPuzzle();
                 startTimer();
-            }, 2500);
+            }, 600);
         }
 
         function retryLevel() {
@@ -2185,7 +2182,7 @@
         document.getElementById('restartBtn').onclick = resetGame;
         document.getElementById('completeBtn').onclick = resetGame;
         document.getElementById('undoBtn').onclick = undoLastMove;
-        document.getElementById('clearBtn').onclick = clearAll;
+        
         document.getElementById('hintBtn').onclick = showHint;
         document.getElementById('statsToggle').onclick = () => {
             const panel = document.getElementById('statsPanel');
@@ -2264,7 +2261,7 @@
                 setTimeout(() => {
                     sprite.classList.remove('hit', 'hit-light', 'dodge', 'defeated');
                     sprite.style.opacity = '1';
-                }, 2000);
+                }, 500);
             }
         };
         
