@@ -1642,11 +1642,19 @@
 
         function selectOperator(op) {
             if (!gameState.started) return;
-            
-            // Only allow operator if there's a number to follow it
-            if (selectedOperators.length >= selectedNumbers.length) return;
-            
             playSound('operator');
+            
+            if (selectedOperators.length >= selectedNumbers.length) {
+                if (selectedOperators.length > 0) {
+                    if (selectedOperators[selectedOperators.length - 1] === op) {
+                        selectedOperators.pop();
+                    } else {
+                        selectedOperators[selectedOperators.length - 1] = op;
+                    }
+                    updateExpression();
+                }
+                return;
+            }
             
             if (selectedOperators.length < 3) {
                 selectedOperators.push(op);
@@ -2054,6 +2062,16 @@
             }, 2500);
         }
 
+        
+        const ENEMIES = [
+            { name: "Stone Golem", url: "assets/golem_spritesheet.jpg" },
+            { name: "Skeleton Warrior", url: "assets/skeleton.jpg" },
+            { name: "Goblin Thief", url: "assets/goblin.jpg" },
+            { name: "Vampire Bat", url: "assets/bat.jpg" },
+            { name: "Beholder", url: "assets/beholder.jpg" },
+            { name: "Red Dragon", url: "assets/dragon.jpg" }
+        ];
+        
         function spawnEnemy() {
             if (gameState.mode === 'campaign') {
                 gameState.enemyMaxHP = 24;
@@ -2066,6 +2084,10 @@
             const sprite = document.getElementById('monsterSprite');
             if (sprite) {
                 sprite.classList.remove('defeated', 'hit', 'hit-light', 'dodge');
+                
+                // Pick a random enemy variant
+                const enemyType = ENEMIES[Math.floor(Math.random() * ENEMIES.length)];
+                sprite.style.backgroundImage = `url('${enemyType.url}')`;
             }
             
             updateHealthBar();
