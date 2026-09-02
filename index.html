@@ -1457,6 +1457,7 @@
         }
 
         function monsterDefeated() {
+            if (!gameState.started) return; // Completely mitigates Warrior bypass and Zombie state
             gameState.started = false; // Lock out the UI during transition
             gameState.enemyCurrentHP = 0;
             updateHealthBar();
