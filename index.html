@@ -1443,9 +1443,9 @@
                 document.getElementById('timer').textContent = 0;
                 gameOver();
                 return false;
-            }
-            return true; else {
+            } else {
                 document.getElementById('timer').textContent = gameState.timer;
+                return true;
             }
         }
 
