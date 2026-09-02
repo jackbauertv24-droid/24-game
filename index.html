@@ -1028,7 +1028,11 @@
                 </div>
 
                 <div class="expression-area" id="expressionArea" aria-label="Equation. Tap a token to edit that step.">
-                    <div class="expression" id="expression">
+                    
+                <div style="font-size: 13px; color: #fff; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 12px; text-align: center; margin-bottom: 8px;">
+                    ⚠️ Math is evaluated strictly Left-to-Right!
+                </div>
+                <div class="expression" id="expression">
                         <span class="expression-placeholder">Start with any card</span>
                     </div>
                 </div>
@@ -1073,13 +1077,13 @@
             <h2>🎮 24 Game</h2>
             <p>Choose your game mode:</p>
             
-            <button class="mode-btn selected" id="curatedBtn">
-                📚 Curated
+            <button class="mode-btn selected" id="campaignBtn">
+                🗺️ Campaign
                 <small>Pre-made puzzles sorted by difficulty</small>
             </button>
             
-            <button class="mode-btn" id="generatedBtn">
-                🎲 Generated
+            <button class="mode-btn" id="endlessBtn">
+                ♾️ Endless
                 <small>Infinite puzzles with increasing difficulty</small>
             </button>
             
@@ -1139,107 +1143,10 @@
     <script>
         const OPERATORS = ['+', '−', '×', '÷'];
         
-        const CURATED_PUZZLES = {
-            easy: [
-                { nums: [3, 4, 7, 10] },
-                { nums: [2, 5, 8, 9] },
-                { nums: [4, 8, 10, 10] },
-                { nums: [2, 6, 6, 10] },
-                { nums: [2, 4, 8, 10] },
-                { nums: [3, 8, 9, 10] },
-                { nums: [2, 4, 9, 9] },
-                { nums: [2, 8, 9, 9] },
-                { nums: [1, 4, 9, 10] },
-                { nums: [1, 8, 8, 9] },
-                { nums: [2, 6, 8, 8] },
-                { nums: [4, 5, 6, 9] },
-                { nums: [3, 3, 8, 10] },
-                { nums: [1, 6, 8, 9] },
-                { nums: [2, 7, 9, 10] },
-                { nums: [1, 6, 9, 10] },
-                { nums: [5, 5, 7, 7] },
-                { nums: [2, 7, 7, 8] },
-                { nums: [1, 7, 8, 10] },
-                { nums: [4, 9, 9, 10] },
-                { nums: [3, 5, 6, 10] },
-                { nums: [2, 3, 9, 10] },
-                { nums: [1, 5, 8, 10] },
-                { nums: [3, 5, 7, 9] },
-                { nums: [3, 6, 7, 8] },
-                { nums: [4, 5, 7, 8] },
-                { nums: [3, 4, 8, 9] },
-                { nums: [1, 3, 10, 10] },
-                { nums: [5, 5, 5, 9] },
-                { nums: [4, 5, 5, 10] }
-            ],
-            medium: [
-                { nums: [3, 5, 7, 8] },
-                { nums: [4, 5, 6, 7] },
-                { nums: [1, 2, 3, 4] },
-                { nums: [3, 6, 7, 9] },
-                { nums: [4, 5, 7, 9] },
-                { nums: [5, 7, 8, 9] },
-                { nums: [3, 4, 8, 9] },
-                { nums: [4, 5, 8, 9] },
-                { nums: [3, 4, 8, 9] },
-                { nums: [3, 7, 8, 9] },
-                { nums: [2, 3, 5, 8] },
-                { nums: [5, 6, 8, 9] },
-                { nums: [1, 3, 4, 9] },
-                { nums: [4, 7, 8, 9] },
-                { nums: [6, 6, 8, 9] },
-                { nums: [2, 5, 8, 9] },
-                { nums: [4, 5, 9, 10] },
-                { nums: [5, 7, 9, 10] },
-                { nums: [3, 8, 9, 10] },
-                { nums: [4, 6, 9, 10] },
-                { nums: [5, 6, 9, 10] },
-                { nums: [4, 5, 6, 9] },
-                { nums: [3, 4, 5, 12] },
-                { nums: [2, 4, 10, 11] },
-                { nums: [5, 7, 10, 11] },
-                { nums: [6, 8, 10, 11] },
-                { nums: [3, 5, 11, 11] },
-                { nums: [3, 4, 6, 11] },
-                { nums: [1, 4, 8, 11] },
-                { nums: [6, 9, 11, 12] }
-            ],
-            hard: [
-                { nums: [5, 8, 10, 12] },
-                { nums: [6, 7, 10, 12] },
-                { nums: [7, 8, 11, 12] },
-                { nums: [5, 5, 12, 13] },
-                { nums: [4, 7, 10, 11] },
-                { nums: [8, 9, 12, 13] },
-                { nums: [6, 8, 11, 13] },
-                { nums: [7, 10, 12, 13] },
-                { nums: [1, 3, 9, 12] },
-                { nums: [9, 10, 11, 13] },
-                { nums: [6, 7, 12, 13] },
-                { nums: [7, 8, 12, 13] },
-                { nums: [8, 9, 12, 13] },
-                { nums: [9, 10, 12, 13] },
-                { nums: [6, 11, 12, 13] },
-                { nums: [7, 10, 11, 13] },
-                { nums: [2, 4, 8, 10] },
-                { nums: [9, 10, 11, 12] },
-                { nums: [10, 11, 12, 13] },
-                { nums: [6, 9, 11, 12] },
-                { nums: [4, 7, 8, 12] },
-                { nums: [1, 4, 8, 11] },
-                { nums: [6, 8, 9, 12] },
-                { nums: [7, 9, 10, 12] },
-                { nums: [4, 6, 8, 10] },
-                { nums: [1, 3, 8, 12] },
-                { nums: [6, 9, 10, 11] },
-                { nums: [2, 4, 7, 11] },
-                { nums: [8, 9, 10, 12] },
-                { nums: [1, 3, 9, 11] },
-            ]
-        };
+        const CAMPAIGN_PUZZLES = { easy: [], medium: [], hard: [] };
 
         let gameState = {
-            mode: 'curated',
+            mode: 'campaign',
             difficulty: 'easy',
             level: 1,
             score: 0,
@@ -1489,7 +1396,7 @@
             const diff = gameState.difficulty;
             let numRange, ops;
 
-            if (gameState.mode === 'generated') {
+            if (gameState.mode === 'endless') {
                 const level = gameState.level;
                 if (level <= 10) { numRange = [1, 10]; ops = ['+', '−']; }
                 else if (level <= 20) { numRange = [1, 9]; ops = ['+', '−', '×']; }
@@ -1592,7 +1499,7 @@
 
         function getTimerForLevel() {
             if (gameState.isPractice) return 0;
-            if (gameState.mode === 'curated') {
+            if (gameState.mode === 'campaign') {
                 if (gameState.difficulty === 'easy') return 45;
                 if (gameState.difficulty === 'medium') return 35;
                 return 25;
@@ -1629,9 +1536,9 @@
         function renderOperators() {
             const container = document.getElementById('operators');
             container.innerHTML = '';
-            const allowedOps = gameState.mode === 'generated' && gameState.level <= 10 ? ['+', '−'] :
-                              gameState.mode === 'generated' && gameState.level <= 20 ? ['+', '−', '×'] :
-                              gameState.mode === 'curated' && gameState.difficulty === 'easy' ? ['+', '−'] :
+            const allowedOps = gameState.mode === 'endless' && gameState.level <= 10 ? ['+', '−'] :
+                              gameState.mode === 'endless' && gameState.level <= 20 ? ['+', '−', '×'] :
+                              gameState.mode === 'campaign' && gameState.difficulty === 'easy' ? ['+', '−'] :
                               ['+', '−', '×', '÷'];
             
             OPERATORS.forEach(op => {
@@ -1655,8 +1562,13 @@
             playSound('select');
             
             if (selectedNumbers.includes(idx)) {
-                selectedNumbers = selectedNumbers.filter(i => i !== idx);
+                const removeIndex = selectedNumbers.indexOf(idx);
+                selectedNumbers.splice(removeIndex, 1);
                 currentNumbers[idx].used = false;
+                
+                if (selectedOperators.length >= selectedNumbers.length) {
+                    selectedOperators = selectedOperators.slice(0, Math.max(0, selectedNumbers.length - 1));
+                }
             } else {
                 if (selectedNumbers.length < 4) {
                     selectedNumbers.push(idx);
@@ -1922,13 +1834,13 @@
                     gameState.bestStreak = Math.max(gameState.bestStreak, gameState.streak);
                     saveStats();
                 }
-                const points = Math.round((100 + (gameState.timer * 2)) * gameState.multiplier);
-                gameState.score += points;
                 gameState.streak++;
                 updateMultiplier();
+                const points = Math.round((100 + (gameState.timer * 2)) * gameState.multiplier);
+                gameState.score += points;
                 updateUI();
                 
-                if (gameState.mode === 'curated') {
+                if (gameState.mode === 'campaign') {
                     gameState.solvedPuzzles[gameState.difficulty].push(gameState.currentPuzzleIndex);
                 }
 
@@ -2006,9 +1918,9 @@
             updateStats();
             
             const diffEl = document.getElementById('difficulty');
-            if (gameState.mode === 'curated') {
+            if (gameState.mode === 'campaign') {
                 diffEl.textContent = gameState.difficulty.toUpperCase();
-            } else if (gameState.mode === 'generated') {
+            } else if (gameState.mode === 'endless') {
                 const tiers = ['EASY', 'EASY', 'MED', 'MED', 'HARD'];
                 diffEl.textContent = tiers[Math.min(4, Math.floor(gameState.level / 10))];
             } else {
@@ -2038,8 +1950,8 @@
             selectedNumbers = [];
             selectedOperators = [];
             
-            if (gameState.mode === 'curated') {
-                const puzzles = CURATED_PUZZLES[gameState.difficulty];
+            if (gameState.mode === 'campaign') {
+                const puzzles = CAMPAIGN_PUZZLES[gameState.difficulty];
                 const solved = gameState.solvedPuzzles[gameState.difficulty];
                 let idx = gameState.currentPuzzleIndex;
                 
@@ -2107,7 +2019,7 @@
         }
 
         function spawnEnemy() {
-            if (gameState.mode === 'curated') {
+            if (gameState.mode === 'campaign') {
                 gameState.enemyMaxHP = gameState.difficulty === 'easy' ? 100 : gameState.difficulty === 'medium' ? 200 : 300;
             } else {
                 gameState.enemyMaxHP = 100 * Math.min(3, Math.ceil(gameState.level / 3));
@@ -2133,8 +2045,8 @@
         function nextLevel() {
             document.getElementById('successModal').classList.remove('active');
             
-            if (gameState.mode === 'curated') {
-                if (gameState.solvedPuzzles[gameState.difficulty].length >= CURATED_PUZZLES[gameState.difficulty].length) {
+            if (gameState.mode === 'campaign') {
+                if (gameState.solvedPuzzles[gameState.difficulty].length >= CAMPAIGN_PUZZLES[gameState.difficulty].length) {
                     document.getElementById('completeModal').classList.add('active');
                     return;
                 }
@@ -2162,7 +2074,40 @@
         }
 
         function showModeSelect() {
-            document.getElementById('modeModal').classList.add('active');
+            
+        function initCampaignPuzzles() {
+            const difficulties = [
+                { name: 'easy', numRange: [1, 10], ops: ['+', '−'] },
+                { name: 'medium', numRange: [1, 9], ops: ['+', '−', '×'] },
+                { name: 'hard', numRange: [1, 13], ops: ['+', '−', '×', '÷'] }
+            ];
+
+            difficulties.forEach(diff => {
+                let candidates = [];
+                let attempts = 0;
+                while(candidates.length < 30 && attempts < 5000) {
+                    attempts++;
+                    const nums = [];
+                    for (let i = 0; i < 4; i++) {
+                        nums.push(Math.floor(Math.random() * (diff.numRange[1] - diff.numRange[0] + 1)) + diff.numRange[0]);
+                    }
+                    const uniqueNums = [...new Set(nums)];
+                    if (uniqueNums.length < 2) continue;
+                    
+                    const solutions = findSolutions(nums, diff.ops);
+                    if (solutions.length > 0) {
+                        const numString = [...nums].sort((a,b)=>a-b).join(',');
+                        if (!candidates.some(c => c.key === numString)) {
+                            candidates.push({ key: numString });
+                            CAMPAIGN_PUZZLES[diff.name].push({ nums: [...nums] }); // RPG branch doesn't need hint here
+                        }
+                    }
+                }
+            });
+        }
+        initCampaignPuzzles();
+
+        document.getElementById('modeModal').classList.add('active');
             document.getElementById('successModal').classList.remove('active');
             document.getElementById('failModal').classList.remove('active');
             document.getElementById('timeoutModal').classList.remove('active');
@@ -2206,16 +2151,16 @@
             showModeSelect();
         }
 
-        document.getElementById('curatedBtn').onclick = function() {
-            gameState.mode = 'curated';
+        document.getElementById('campaignBtn').onclick = function() {
+            gameState.mode = 'campaign';
             gameState.isPractice = false;
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
             this.classList.add('selected');
             document.getElementById('difficultySelect').style.display = 'block';
         };
 
-        document.getElementById('generatedBtn').onclick = function() {
-            gameState.mode = 'generated';
+        document.getElementById('endlessBtn').onclick = function() {
+            gameState.mode = 'endless';
             gameState.isPractice = false;
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
             this.classList.add('selected');
@@ -2223,7 +2168,7 @@
         };
 
         document.getElementById('practiceBtn').onclick = function() {
-            gameState.mode = 'curated';
+            gameState.mode = 'campaign';
             gameState.isPractice = true;
             gameState.difficulty = 'easy';
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
