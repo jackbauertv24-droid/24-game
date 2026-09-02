@@ -1164,8 +1164,8 @@
                 <div class="class-card" onclick="startGameWithClass('wizard')" style="border: 2px solid #555; padding: 15px; border-radius: 8px; cursor: pointer;">
                     <img src="assets/class_wizard.jpg" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 2px solid #444; box-shadow: 0 4px 8px rgba(0,0,0,0.5);" alt="Wizard">
                     <h3 style="margin: 5px 0; color: #5555ff;">Wizard</h3>
-                    <p style="font-size: 12px; margin-bottom: 5px; color: #aaa;"><strong>Passive:</strong> 2x Dmg if using ÷</p>
-                    <p style="font-size: 12px; color: #aaa;"><strong>Active:</strong> Show Hint (Costs 5s)</p>
+                    <p style="font-size: 12px; margin-bottom: 5px; color: #aaa;"><strong>Passive:</strong> +10s if using Division (÷)</p>
+                    <p style="font-size: 12px; color: #aaa;"><strong>Active:</strong> Show Hint (Costs 20s)</p>
                 </div>
                 <div class="class-card" onclick="startGameWithClass('paladin')" style="border: 2px solid #555; padding: 15px; border-radius: 8px; cursor: pointer;">
                     <img src="assets/class_paladin.jpg" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 2px solid #444; box-shadow: 0 4px 8px rgba(0,0,0,0.5);" alt="Paladin">
@@ -1263,7 +1263,7 @@
             if (btn) {
                 if (cls === 'warrior') btn.innerHTML = '🪓 Intimidate';
                 if (cls === 'rogue') btn.innerHTML = '🗡️ Sleight of Hand (-5s)';
-                if (cls === 'wizard') btn.innerHTML = '🧙‍♂️ Clairvoyance';
+                if (cls === 'wizard') btn.innerHTML = '🧙‍♂️ Clairvoyance (-20s)';
                 if (cls === 'paladin') btn.innerHTML = '🛡️ Smite';
             }
             
@@ -1390,11 +1390,11 @@
                     showFloatingText('Already active!', '#5555ff', 'monsterArea');
                     return;
                 }
-                if (gameState.timer <= 5 && !gameState.isPractice) {
+                if (gameState.timer <= 20 && !gameState.isPractice) {
                     showFloatingText('Not enough time!', '#ff5555', 'monsterArea');
                     return;
                 }
-                applyTimeChange(-5);
+                applyTimeChange(-20);
                 showFloatingText('Clairvoyance!', '#5555ff', 'monsterArea');
                 showHint();
             } else if (cls === 'paladin') {
@@ -2266,7 +2266,6 @@
                 }, 200);
             }
             if (gameState.playerClass === 'wizard' && selectedOperators.includes('÷')) {
-                damage = 48;
                 setTimeout(() => {
                     playSound('magic');
                     showFloatingText('🔮 Arcane Surge!', '#5555ff', 'monsterArea');
@@ -2282,6 +2281,12 @@
                     playSound('coin');
                     showFloatingText('🪙 +20s', '#55ff55', 'monsterArea');
                 }, 300);
+            }
+            if (gameState.playerClass === 'wizard' && selectedOperators.includes('÷')) {
+                timeGain += 10;
+                setTimeout(() => {
+                    showFloatingText('⏱️ +10s', '#5555ff', 'monsterArea');
+                }, 600);
             }
             applyTimeChange(timeGain);
 
