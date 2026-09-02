@@ -136,7 +136,7 @@
         .monster-sprite {
             width: 140px;
             height: 140px;
-            /* removed */
+            background-image: url('assets/golem_spritesheet.jpg');
             background-size: 400% 400%; /* 4 columns, 4 rows */
             background-position: 0% 0%;
             mix-blend-mode: screen;
@@ -1042,7 +1042,7 @@
                 </div>
 
                 <div class="monster-area" id="monsterArea">
-                    <div class="monster-sprite" id="monsterSprite" style="display:none;"></div>
+                    <div class="monster-sprite" id="monsterSprite" ></div>
                     <div id="combatEffect" class="combat-effect"></div>
                     <div class="monster-health-bar-container">
                         <div class="monster-health-bar" id="monsterHealth"></div>
@@ -2337,80 +2337,7 @@
             animate3D();
         }
 
-        function buildGolem() {
-            if(golem) scene.remove(golem);
-            golem = new THREE.Group();
-            golem.position.set(0, -1, golemBaseZ);
-
-            // High Poly Icosahedron for AD&D Stone Golem Look
-            const geoHead = new THREE.IcosahedronGeometry(1.5, 3);
-            const geoTorso = new THREE.IcosahedronGeometry(2.8, 3);
-            const geoArm = new THREE.IcosahedronGeometry(1.2, 3);
-            
-            // Randomize vertices to make it look like jagged rock
-            const deform = (geo, scale) => {
-                const pos = geo.attributes.position;
-                for(let i=0; i<pos.count; i++) {
-                    pos.setX(i, pos.getX(i) + (Math.random()-0.5)*scale);
-                    pos.setY(i, pos.getY(i) + (Math.random()-0.5)*scale);
-                    pos.setZ(i, pos.getZ(i) + (Math.random()-0.5)*scale);
-                }
-                geo.computeVertexNormals();
-            };
-            deform(geoHead, 0.3); deform(geoTorso, 0.5); deform(geoArm, 0.4);
-
-            const mat = new THREE.MeshStandardMaterial({ 
-                color: 0x5a6066, 
-                roughness: 0.9, 
-                metalness: 0.1,
-                bumpMap: window.rockTex,
-                bumpScale: 0.8
-            });
-            const coreMat = new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0xff1111, emissiveIntensity: 2.0 });
-
-            torso = new THREE.Mesh(geoTorso, mat);
-            torso.position.y = 3;
-            golem.add(torso);
-
-            const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 2), coreMat);
-            core.position.set(0, 3, 2);
-            golem.add(core);
-
-            head = new THREE.Mesh(geoHead, mat);
-            head.position.y = 6.5;
-            golem.add(head);
-
-            leftArm = new THREE.Group();
-            leftArm.position.set(-3.5, 4, 0);
-            const lMesh = new THREE.Mesh(geoArm, mat);
-            lMesh.position.y = -1.5;
-            leftArm.add(lMesh);
-            golem.add(leftArm);
-
-            rightArm = new THREE.Group();
-            rightArm.position.set(3.5, 4, 0);
-            const rMesh = new THREE.Mesh(geoArm, mat);
-            rMesh.position.y = -1.5;
-            rightArm.add(rMesh);
-            golem.add(rightArm);
-
-            // Legs
-            const geoLeg = new THREE.IcosahedronGeometry(1.4, 3);
-            deform(geoLeg, 0.3);
-            const lLeg = new THREE.Mesh(geoLeg, mat); lLeg.position.set(-1.5, 0.5, 0); golem.add(lLeg);
-            const rLeg = new THREE.Mesh(geoLeg, mat); rLeg.position.set(1.5, 0.5, 0); golem.add(rLeg);
-
-            // Add glowing runes floating around
-            for(let i=0; i<3; i++) {
-                const rune = new THREE.Mesh(new THREE.TetrahedronGeometry(0.3), coreMat);
-                rune.position.set((Math.random()-0.5)*10, 4+(Math.random()-0.5)*5, (Math.random()-0.5)*5);
-                golem.add(rune);
-            }
-
-            golem.scale.set(0.4, 0.4, 0.4);
-            golem.position.y = -2; // lower it slightly
-            scene.add(golem);
-        }
+        function buildGolem() { /* Reverted to 2D CSS Sprite */ }
 
         function animate3D() {
             requestAnimationFrame(animate3D);
@@ -2435,55 +2362,43 @@
                 }
             });
 
-            // Golem State Machine
-            if (golem && golemState === 'idle') {
-                golem.position.y = Math.sin(time * 2) * 0.1;
-                leftArm.rotation.x = Math.sin(time * 2) * 0.1;
-                rightArm.rotation.x = Math.sin(time * 2 + Math.PI) * 0.1;
-                head.rotation.y = Math.sin(time) * 0.1;
-                
-                // reset hit rotations
-                leftArm.rotation.z = 0;
-                rightArm.rotation.z = 0;
-                golem.rotation.x = 0;
-            } 
-            else if (golemState === 'hit') {
-                stateTimer++;
-                golem.position.z = golemBaseZ - Math.sin(stateTimer * 0.2) * 1.5;
-                golem.rotation.x = -0.2;
-                if (stateTimer > 15) { golemState = 'idle'; golem.position.z = golemBaseZ; }
-            }
-            else if (golemState === 'block') {
-                stateTimer++;
-                leftArm.rotation.x = -Math.PI / 2;
-                leftArm.rotation.z = -0.5;
-                rightArm.rotation.x = -Math.PI / 2;
-                rightArm.rotation.z = 0.5;
-                if (stateTimer > 20) golemState = 'idle';
-            }
-            else if (golemState === 'death') {
-                stateTimer++;
-                torso.position.y -= 0.1;
-                leftArm.rotation.z -= 0.1;
-                rightArm.rotation.z += 0.1;
-                head.position.y -= 0.15;
-                head.rotation.x += 0.1;
-            }
-
+            // Only render the 3D tunnel, ignore golem state
             renderer.render(scene, camera);
         }
 
-        window.glHit = () => { golemState = 'hit'; stateTimer = 0; };
-        window.glBlock = () => { golemState = 'block'; stateTimer = 0; };
-        window.glDeath = () => { golemState = 'death'; stateTimer = 0; };
+        window.glHit = () => { 
+            const sprite = document.getElementById('monsterSprite');
+            if(sprite) {
+                sprite.classList.remove('hit', 'hit-light', 'dodge', 'defeated');
+                void sprite.offsetWidth;
+                sprite.classList.add('hit-light');
+            }
+        };
+        window.glBlock = () => { 
+            const sprite = document.getElementById('monsterSprite');
+            if(sprite) {
+                sprite.classList.remove('hit', 'hit-light', 'dodge', 'defeated');
+                void sprite.offsetWidth;
+                sprite.classList.add('dodge');
+            }
+        };
+        window.glDeath = () => { 
+            const sprite = document.getElementById('monsterSprite');
+            if(sprite) {
+                sprite.classList.remove('hit', 'hit-light', 'dodge', 'defeated');
+                void sprite.offsetWidth;
+                sprite.classList.add('defeated');
+            }
+        };
         window.glWalk = () => { 
-            targetCamZ -= 30; // walk deeper
-            golemBaseZ -= 30; 
-            // the old golem is already 'dead', leave it behind.
-            // spawn the new golem slightly later for a longer walk
+            targetCamZ -= 30;
+            const sprite = document.getElementById('monsterSprite');
+            if(sprite) sprite.style.opacity = '0'; // hide dead monster while walking
             setTimeout(() => {
-                buildGolem();
-                golemState = 'idle';
+                if(sprite) {
+                    sprite.classList.remove('hit', 'hit-light', 'dodge', 'defeated');
+                    sprite.style.opacity = '1';
+                }
             }, 2500); 
         };
         
