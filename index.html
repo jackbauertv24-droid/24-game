@@ -1210,7 +1210,7 @@
                 <small>No timer, unlimited hints</small>
             </button>
             
-            <div id="difficultySelect" style="display: none;">
+            <div id="difficultySelect" style="display: block;">
                 <p style="margin-top: 16px;">Select Difficulty:</p>
                 <div class="difficulty-selector">
                     <button class="difficulty-btn selected" data-diff="easy">Easy</button>
@@ -1921,6 +1921,7 @@
             const allowedOps = gameState.mode === 'endless' && gameState.level <= 10 ? ['+', '−'] :
                               gameState.mode === 'endless' && gameState.level <= 20 ? ['+', '−', '×'] :
                               gameState.mode === 'campaign' && gameState.difficulty === 'easy' ? ['+', '−'] :
+                              gameState.mode === 'campaign' && gameState.difficulty === 'medium' ? ['+', '−', '×'] :
                               ['+', '−', '×', '÷'];
             
             OPERATORS.forEach(op => {
