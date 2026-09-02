@@ -332,7 +332,7 @@
             pointer-events: none;
         }
 
-        .number-card:hover, .number-card:focus-visible {
+        .number-card:focus-visible {
             transform: translateZ(15px) translateY(-4px);
             box-shadow: 0 8px 0 #151520, 0 20px 25px rgba(0,0,0,0.7), inset 0 2px 5px rgba(255,255,255,0.15);
             color: #fff;
@@ -369,6 +369,14 @@
             .expression-live-total { font-size: 20px; min-height: 22px; }
             #bossLabel { font-size: 14px; margin-bottom: 0px; }
             .controls { gap: 4px; margin-top: 2px; }
+            .modal-content { padding: 16px; width: 95%; }
+            .mode-btn { padding: 10px; margin: 6px 0; font-size: 15px; }
+            .mode-btn small { font-size: 11px; margin-top: 2px; display: block; }
+            .stats-panel { gap: 4px; margin-bottom: 5px; }
+            .stat-card { padding: 4px 2px; }
+            .class-grid { gap: 8px !important; margin: 10px 0 !important; }
+            .class-card { padding: 8px !important; }
+            .class-card p { font-size: 10px !important; line-height: 1.2; margin-bottom: 2px !important; }
         }
 
         .number-card.selected {
@@ -582,10 +590,17 @@
             z-index: 10;
         }
 
-        .operator-btn:hover, .operator-btn:focus-visible {
+        .operator-btn:focus-visible {
             transform: translateZ(15px) translateY(-3px);
             border-color: rgba(179,136,255,0.5);
             box-shadow: 0 7px 0 #0f0b15, 0 15px 20px rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.1);
+        }
+        @media (hover: hover) {
+            .operator-btn:hover {
+                transform: translateZ(15px) translateY(-3px);
+                border-color: rgba(179,136,255,0.5);
+                box-shadow: 0 7px 0 #0f0b15, 0 15px 20px rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.1);
+            }
         }
 
         .operator-btn:active {
