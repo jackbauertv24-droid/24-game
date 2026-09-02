@@ -420,7 +420,7 @@
 
         .number-card.used {
             opacity: 0.3;
-            pointer-events: none;
+            /* pointer-events intentionally left active to allow Undo via tap */
             transform: translateZ(0px) translateY(8px) scale(0.97);
             box-shadow: 0 1px 0 #0d1a24, 0 2px 5px rgba(0,0,0,0.4);
             filter: grayscale(1);
@@ -1077,20 +1077,19 @@
                 </div>
             </div>
 
-            <button class="stats-toggle" id="statsToggle" type="button" aria-expanded="false" aria-controls="statsPanel">View stats</button>
 
-            <div class="stats-panel" id="statsPanel" aria-label="Game statistics">
-                <div class="stat-card"><strong id="statSolved">0</strong><span>Solved</span></div>
-                <div class="stat-card"><strong id="statPlayed">0</strong><span>Played</span></div>
-                <div class="stat-card"><strong id="statAccuracy">0%</strong><span>Accuracy</span></div>
-                <div class="stat-card"><strong id="statBestStreak">0</strong><span>Best streak</span></div>
-            </div>
         </div>
     </div>
 
     <div class="modal" id="modeModal">
         <div class="modal-content">
             <h2>🎮 24 Game</h2>
+                        <div class="stats-panel open" id="statsPanel" aria-label="Game statistics" style="margin-bottom: 20px;">
+                <div class="stat-card"><strong id="statSolved">0</strong><span>Solved</span></div>
+                <div class="stat-card"><strong id="statPlayed">0</strong><span>Played</span></div>
+                <div class="stat-card"><strong id="statAccuracy">0%</strong><span>Accuracy</span></div>
+                <div class="stat-card"><strong id="statBestStreak">0</strong><span>Best streak</span></div>
+            </div>
             <p>Choose your game mode:</p>
             <div style="font-size: 13px; color: #fff; background: rgba(255,50,50,0.2); padding: 8px 12px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid rgba(255,50,50,0.4);">
                 ⚠️ <b>Warning:</b> Math is evaluated strictly Left-to-Right!
@@ -2185,12 +2184,7 @@
         
         
         document.getElementById('hintBtn').onclick = showHint;
-        document.getElementById('statsToggle').onclick = () => {
-            const panel = document.getElementById('statsPanel');
-            const open = panel.classList.toggle('open');
-            document.getElementById('statsToggle').setAttribute('aria-expanded', String(open));
-            document.getElementById('statsToggle').textContent = open ? 'Hide stats' : 'View stats';
-        };
+
         loadStats();
         updateStats();
         function initCampaignPuzzles() {
