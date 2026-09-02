@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>24 Game</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -40,7 +39,7 @@
         body {
             font-family: var(--font-ui);
             color: var(--light);
-            background: #111115;
+            background: url('assets/bg_dungeon.jpg') center/cover no-repeat fixed, #111;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1018,7 +1017,7 @@
 </head>
 <body>
     
-    <canvas id="webgl-canvas" style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-1;"></canvas>
+    
     <div class="game-container">
         <div class="header">
             <div class="header-item">Level <span id="level">1</span></div>
@@ -2232,140 +2231,7 @@
     </script>
 
     <script>
-        // --- 3D ENGINE ---
-        let scene, camera, renderer;
-        let golem, leftArm, rightArm, head, torso;
-        let tunnel = [];
-        let targetCamZ = 0;
-        let golemState = 'idle'; // idle, hit, block, death
-        let stateTimer = 0;
-        let golemBaseZ = -10;
-
-        function init3D() {
-            const canvas = document.getElementById('webgl-canvas');
-            renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-            renderer.setClearColor(0x111115, 1);
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x111115, 0.02);
-
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(0, 2, 0);
-
-            // Lighting
-            const ambient = new THREE.AmbientLight(0xffffff, 0.8);
-            scene.add(ambient);
-            const directional = new THREE.DirectionalLight(0x6c5ce7, 1.5);
-            directional.position.set(5, 10, 5);
-            scene.add(directional);
-            const pointLight = new THREE.PointLight(0xff7675, 4, 30);
-            pointLight.position.set(0, 3, golemBaseZ + 2);
-            scene.add(pointLight);
-
-            // Build Dungeon Tunnel
-            
-        // Generate Procedural Textures
-        function createNoiseTexture(type) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 512; canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-            const imgData = ctx.createImageData(512, 512);
-            for (let i = 0; i < imgData.data.length; i += 4) {
-                let val = Math.random() * 255;
-                if(type === 'rock') {
-                    // Cellular-ish noise approximation
-                    let x = (i/4) % 512; let y = Math.floor((i/4) / 512);
-                    val = (Math.sin(x*0.05)*Math.cos(y*0.05)*128 + 128) * 0.5 + Math.random()*128;
-                }
-                if(type === 'stone') {
-                    val = Math.random() * 50 + 100;
-                    // Brick lines
-                    let x = (i/4) % 512; let y = Math.floor((i/4) / 512);
-                    if(y % 64 < 4 || (x + (Math.floor(y/64)%2)*32) % 128 < 4) val *= 0.3;
-                }
-                imgData.data[i] = imgData.data[i+1] = imgData.data[i+2] = val;
-                imgData.data[i+3] = 255;
-            }
-            ctx.putImageData(imgData, 0, 0);
-            const tex = new THREE.CanvasTexture(canvas);
-            tex.wrapS = THREE.RepeatWrapping;
-            tex.wrapT = THREE.RepeatWrapping;
-            return tex;
-        }
-        
-        window.rockTex = createNoiseTexture('rock');
-        window.stoneTex = createNoiseTexture('stone');
-        stoneTex.repeat.set(4, 20);
-
-            
-            // AD&D Style Infinite Cavern
-            const tunnelGeo = new THREE.CylinderGeometry(15, 15, 200, 32, 32, true);
-            const tunnelMat = new THREE.MeshStandardMaterial({ 
-                color: 0x3a3a40, 
-                roughness: 1.0, 
-                bumpMap: window.stoneTex, 
-                bumpScale: 0.5,
-                side: THREE.BackSide 
-            });
-            window.tunnelMesh = new THREE.Mesh(tunnelGeo, tunnelMat);
-            tunnelMesh.rotation.x = Math.PI / 2;
-            tunnelMesh.position.z = -50;
-            scene.add(tunnelMesh);
-
-            // Add floating dust particles
-            const pGeo = new THREE.BufferGeometry();
-            const pPos = [];
-            for(let i=0; i<500; i++) {
-                pPos.push((Math.random()-0.5)*20, (Math.random()-0.5)*20, -Math.random()*100);
-            }
-            pGeo.setAttribute('position', new THREE.Float32BufferAttribute(pPos, 3));
-            const pMat = new THREE.PointsMaterial({color: 0xffffff, size: 0.1, transparent:true, opacity:0.3});
-            const particles = new THREE.Points(pGeo, pMat);
-            scene.add(particles);
-
-            // Build Golem
-            buildGolem();
-
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-
-            animate3D();
-        }
-
-        function buildGolem() { /* Reverted to 2D CSS Sprite */ }
-
-        function animate3D() {
-            requestAnimationFrame(animate3D);
-            const time = Date.now() * 0.001;
-
-            // Camera follow
-            camera.position.z += (targetCamZ - camera.position.z) * 0.02; // smoother, slower walk
-            if (typeof tunnelMesh !== 'undefined') {
-                // Keep the tunnel centered around the camera's Z position
-                tunnelMesh.position.z = camera.position.z - 50;
-            }
-            // animate particles
-            scene.children.forEach(c => {
-                if(c.isPoints) {
-                    const pos = c.geometry.attributes.position;
-                    for(let i=0; i<pos.count; i++) {
-                        let z = pos.getZ(i) + 0.1;
-                        if(z > camera.position.z) z -= 100;
-                        pos.setZ(i, z);
-                    }
-                    pos.needsUpdate = true;
-                }
-            });
-
-            // Only render the 3D tunnel, ignore golem state
-            renderer.render(scene, camera);
-        }
-
+        // --- 2D ANIMATION HOOKS ---
         window.glHit = () => { 
             const sprite = document.getElementById('monsterSprite');
             if(sprite) {
@@ -2391,15 +2257,15 @@
             }
         };
         window.glWalk = () => { 
-            targetCamZ -= 30;
             const sprite = document.getElementById('monsterSprite');
-            if(sprite) sprite.style.opacity = '0'; // hide dead monster while walking
-            setTimeout(() => {
-                if(sprite) {
+            if(sprite) {
+                sprite.style.transition = 'opacity 0.5s';
+                sprite.style.opacity = '0';
+                setTimeout(() => {
                     sprite.classList.remove('hit', 'hit-light', 'dodge', 'defeated');
                     sprite.style.opacity = '1';
-                }
-            }, 2500); 
+                }, 2000);
+            }
         };
         
         window.showFloatingDamage = (amt) => {
@@ -2409,9 +2275,7 @@
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 1000);
         };
-
-        init3D();
-        // --- END 3D ENGINE ---
+        // --- END 2D ANIMATION HOOKS ---
     </script>
 
 </body>
