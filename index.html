@@ -2078,21 +2078,23 @@
         
         const ENEMIES = [
             { name: "Stone Golem", url: "assets/golem_spritesheet.jpg", filter: "none" },
-            { name: "Magma Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(150deg) saturate(2) brightness(1.2)" },
-            { name: "Frost Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(210deg) saturate(1.5) brightness(1.5)" },
-            { name: "Toxic Sludge Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(80deg) saturate(2) brightness(1.1)" },
-            { name: "Void Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(280deg) saturate(1.5) contrast(1.5)" },
-            { name: "Golden Golem", url: "assets/golem_spritesheet.jpg", filter: "sepia(1) saturate(3) hue-rotate(10deg) brightness(1.3)" },
-            { name: "Skeleton Warrior", url: "assets/skeleton.jpg", filter: "none" },
-            { name: "Goblin Thief", url: "assets/goblin.jpg", filter: "none" },
-            { name: "Vampire Bat", url: "assets/bat.jpg", filter: "none" },
-            { name: "Beholder", url: "assets/beholder.jpg", filter: "none" },
-            { name: "Red Dragon", url: "assets/dragon.jpg", filter: "none" },
+            { name: "Magma Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(150deg) saturate(2) brightness(1.2)", hidden: true },
+            { name: "Frost Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(210deg) saturate(1.5) brightness(1.5)", hidden: true },
+            { name: "Toxic Sludge Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(80deg) saturate(2) brightness(1.1)", hidden: true },
+            { name: "Void Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(280deg) saturate(1.5) contrast(1.5)", hidden: true },
+            { name: "Golden Golem", url: "assets/golem_spritesheet.jpg", filter: "sepia(1) saturate(3) hue-rotate(10deg) brightness(1.3)", hidden: true },
+            { name: "Skeleton Warrior", url: "assets/skeleton.jpg", filter: "none", hidden: true },
+            { name: "Goblin Thief", url: "assets/goblin.jpg", filter: "none", hidden: true },
+            { name: "Vampire Bat", url: "assets/bat.jpg", filter: "none", hidden: true },
+            { name: "Beholder", url: "assets/beholder.jpg", filter: "none", hidden: true },
+            { name: "Red Dragon", url: "assets/dragon.jpg", filter: "none", hidden: true },
             { name: "Orc Warlord", url: "assets/orc.jpg", filter: "none" },
             { name: "Ghostly Wraith", url: "assets/wraith.jpg", filter: "none" },
             { name: "Fire Elemental", url: "assets/fire_elemental.jpg", filter: "none" },
             { name: "Armored Spider", url: "assets/spider.jpg", filter: "none" },
-            { name: "Lich King", url: "assets/lich.jpg", filter: "none" }
+            { name: "Lich King", url: "assets/lich.jpg", filter: "none" },
+            { name: "Crystal Golem", url: "assets/crystal_golem.jpg", filter: "none" },
+            { name: "Minotaur Gladiator", url: "assets/minotaur.jpg", filter: "none" }
         ];
         
         function spawnEnemy() {
@@ -2109,7 +2111,8 @@
                 sprite.classList.remove('defeated', 'hit', 'hit-light', 'dodge');
                 
                 // Pick a random enemy variant
-                const enemyType = ENEMIES[Math.floor(Math.random() * ENEMIES.length)];
+                const activeEnemies = ENEMIES.filter(e => !e.hidden);
+                const enemyType = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
                 sprite.style.backgroundImage = `url('${enemyType.url}')`;
             }
             
@@ -2207,7 +2210,8 @@
         let galIndex = 0;
         
         function updateGallery() {
-            const enemy = ENEMIES[galIndex];
+            const activeEnemies = ENEMIES.filter(e => !e.hidden);
+            const enemy = activeEnemies[galIndex];
             document.getElementById('galName').textContent = (galIndex + 1) + ". " + enemy.name;
             const sprite = document.getElementById('galSprite');
             sprite.style.backgroundImage = `url('${enemy.url}')`;
@@ -2242,12 +2246,14 @@
         };
         
         document.getElementById('galPrevBtn').onclick = () => {
-            galIndex = (galIndex - 1 + ENEMIES.length) % ENEMIES.length;
+            const len = ENEMIES.filter(e => !e.hidden).length;
+            galIndex = (galIndex - 1 + len) % len;
             updateGallery();
         };
         
         document.getElementById('galNextBtn').onclick = () => {
-            galIndex = (galIndex + 1) % ENEMIES.length;
+            const len = ENEMIES.filter(e => !e.hidden).length;
+            galIndex = (galIndex + 1) % len;
             updateGallery();
         };
         
