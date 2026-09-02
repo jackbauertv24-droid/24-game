@@ -2292,8 +2292,8 @@
             return tex;
         }
         
-        const rockTex = createNoiseTexture('rock');
-        const stoneTex = createNoiseTexture('stone');
+        window.rockTex = createNoiseTexture('rock');
+        window.stoneTex = createNoiseTexture('stone');
         stoneTex.repeat.set(4, 20);
 
             
@@ -2302,7 +2302,7 @@
             const tunnelMat = new THREE.MeshStandardMaterial({ 
                 color: 0x3a3a40, 
                 roughness: 1.0, 
-                bumpMap: stoneTex, 
+                bumpMap: window.stoneTex, 
                 bumpScale: 0.5,
                 side: THREE.BackSide 
             });
@@ -2360,7 +2360,7 @@
                 color: 0x5a6066, 
                 roughness: 0.9, 
                 metalness: 0.1,
-                bumpMap: rockTex,
+                bumpMap: window.rockTex,
                 bumpScale: 0.8
             });
             const coreMat = new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0xff1111, emissiveIntensity: 2.0 });
