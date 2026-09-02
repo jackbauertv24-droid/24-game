@@ -139,7 +139,9 @@
             background-size: 400% 400%; /* 4 columns, 4 rows */
             background-position: 0% 0%;
             mix-blend-mode: screen;
-            filter: drop-shadow(0 0 10px rgba(100,200,255,0.3));
+            /* Fade edges to transparent to prevent any visible square boundary */
+            -webkit-mask-image: radial-gradient(circle at center, black 50%, transparent 70%);
+            mask-image: radial-gradient(circle at center, black 50%, transparent 70%);
             animation: animIdle 0.8s step-end infinite;
         }
 
