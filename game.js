@@ -1295,9 +1295,8 @@
         initCampaignPuzzles();
 
         document.getElementById('modeModal').classList.add('active');
-    </script>
+    
 
-    <script>
         // --- 2D ANIMATION HOOKS ---
         window.glHit = () => { 
             const sprite = document.getElementById('monsterSprite');
