@@ -1093,6 +1093,26 @@
         </div>
     </div>
 
+    <div class="modal" id="galleryModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <h2>📖 Monster Bestiary</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+                <button class="modal-btn" id="galPrevBtn" style="min-width: 40px; padding: 10px;">◀</button>
+                <div style="width: 250px; height: 250px; position: relative; background: url('assets/bg_dungeon.jpg') center/cover; border-radius: 12px; overflow: hidden; border: 2px solid var(--card-border);">
+                    <div id="galSprite" class="monster-sprite" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);"></div>
+                </div>
+                <button class="modal-btn" id="galNextBtn" style="min-width: 40px; padding: 10px;">▶</button>
+            </div>
+            <h3 id="galName" style="margin-bottom: 15px; color: var(--secondary); text-align: center; font-size: 24px;"></h3>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                <button class="modal-btn primary" onclick="playGalAnim('hit')">Hit</button>
+                <button class="modal-btn primary" onclick="playGalAnim('dodge')">Block</button>
+                <button class="modal-btn primary" onclick="playGalAnim('defeated')">Defeat</button>
+            </div>
+            <button class="modal-btn" id="galCloseBtn" style="margin-top: 15px; width: 100%;">Close</button>
+        </div>
+    </div>
+    
     <div class="modal" id="modeModal">
         <div class="modal-content">
             <h2>🎮 24 Game</h2>
@@ -1117,6 +1137,10 @@
                 <small>Infinite puzzles with increasing difficulty</small>
             </button>
             
+            <button class="mode-btn" id="galleryBtn" style="background: rgba(100,50,200,0.3); border: 2px solid #9a66ff;">
+                📖 Monster Bestiary
+                <small>View and test all enemy animations</small>
+            </button>
             <button class="mode-btn" id="practiceBtn">
                 🎯 Practice
                 <small>No timer, unlimited hints</small>
@@ -2064,12 +2088,22 @@
 
         
         const ENEMIES = [
-            { name: "Stone Golem", url: "assets/golem_spritesheet.jpg" },
-            { name: "Skeleton Warrior", url: "assets/skeleton.jpg" },
-            { name: "Goblin Thief", url: "assets/goblin.jpg" },
-            { name: "Vampire Bat", url: "assets/bat.jpg" },
-            { name: "Beholder", url: "assets/beholder.jpg" },
-            { name: "Red Dragon", url: "assets/dragon.jpg" }
+            { name: "Stone Golem", url: "assets/golem_spritesheet.jpg", filter: "none" },
+            { name: "Magma Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(150deg) saturate(2) brightness(1.2)" },
+            { name: "Frost Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(210deg) saturate(1.5) brightness(1.5)" },
+            { name: "Toxic Sludge Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(80deg) saturate(2) brightness(1.1)" },
+            { name: "Void Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(280deg) saturate(1.5) contrast(1.5)" },
+            { name: "Golden Golem", url: "assets/golem_spritesheet.jpg", filter: "sepia(1) saturate(3) hue-rotate(10deg) brightness(1.3)" },
+            { name: "Skeleton Warrior", url: "assets/skeleton.jpg", filter: "none" },
+            { name: "Goblin Thief", url: "assets/goblin.jpg", filter: "none" },
+            { name: "Vampire Bat", url: "assets/bat.jpg", filter: "none" },
+            { name: "Beholder", url: "assets/beholder.jpg", filter: "none" },
+            { name: "Red Dragon", url: "assets/dragon.jpg", filter: "none" },
+            { name: "Orc Warlord", url: "assets/orc.jpg", filter: "none" },
+            { name: "Ghostly Wraith", url: "assets/wraith.jpg", filter: "none" },
+            { name: "Fire Elemental", url: "assets/fire_elemental.jpg", filter: "none" },
+            { name: "Armored Spider", url: "assets/spider.jpg", filter: "none" },
+            { name: "Lich King", url: "assets/lich.jpg", filter: "none" }
         ];
         
         function spawnEnemy() {
@@ -2180,6 +2214,54 @@
             showModeSelect();
         }
 
+        
+        let galIndex = 0;
+        
+        function updateGallery() {
+            const enemy = ENEMIES[galIndex];
+            document.getElementById('galName').textContent = (galIndex + 1) + ". " + enemy.name;
+            const sprite = document.getElementById('galSprite');
+            sprite.style.backgroundImage = `url('${enemy.url}')`;
+            sprite.style.setProperty('--enemy-filter', enemy.filter);
+            sprite.className = 'monster-sprite'; // reset animation
+        }
+        
+        window.playGalAnim = function(animClass) {
+            const sprite = document.getElementById('galSprite');
+            sprite.className = 'monster-sprite';
+            void sprite.offsetWidth; // trigger reflow
+            sprite.classList.add(animClass);
+            
+            if (animClass !== 'defeated') {
+                setTimeout(() => {
+                    if (sprite.classList.contains(animClass)) {
+                        sprite.classList.remove(animClass);
+                    }
+                }, 400);
+            }
+        };
+
+        document.getElementById('galleryBtn').onclick = () => {
+            document.getElementById('modeModal').classList.remove('active');
+            document.getElementById('galleryModal').classList.add('active');
+            updateGallery();
+        };
+        
+        document.getElementById('galCloseBtn').onclick = () => {
+            document.getElementById('galleryModal').classList.remove('active');
+            document.getElementById('modeModal').classList.add('active');
+        };
+        
+        document.getElementById('galPrevBtn').onclick = () => {
+            galIndex = (galIndex - 1 + ENEMIES.length) % ENEMIES.length;
+            updateGallery();
+        };
+        
+        document.getElementById('galNextBtn').onclick = () => {
+            galIndex = (galIndex + 1) % ENEMIES.length;
+            updateGallery();
+        };
+        
         document.getElementById('campaignBtn').onclick = function() {
             gameState.mode = 'campaign';
             gameState.isPractice = false;
