@@ -1050,19 +1050,15 @@
 
                 <div class="expression-area" id="expressionArea" onclick="clearAll()" style="cursor:pointer;" title="Tap to clear" aria-label="Equation. Tap a token to edit that step.">
                     
-                <div style="font-size: 13px; color: #fff; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 12px; text-align: center; margin-bottom: 8px;">
-                    ⚠️ Math is evaluated strictly Left-to-Right!
-                </div>
+                
                 <div class="expression" id="expression">
-                        <span class="expression-placeholder">Start with any card (Tap here to clear)</span>
+                        <span class="expression-placeholder">Tap here to clear board</span>
                     </div>
                 </div>
 
                 <div class="hint-text" id="hint"></div>
 
-                <div class="info-notice">
-                    💡 Left-to-right evaluation • Division must be exact (no fractions)
-                </div>
+                
             </div>
 
             <div class="gamepad" aria-label="Game controls">
@@ -1097,6 +1093,9 @@
         <div class="modal-content">
             <h2>🎮 24 Game</h2>
             <p>Choose your game mode:</p>
+            <div style="font-size: 13px; color: #fff; background: rgba(255,50,50,0.2); padding: 8px 12px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid rgba(255,50,50,0.4);">
+                ⚠️ <b>Warning:</b> Math is evaluated strictly Left-to-Right!
+            </div>
             
             <button class="mode-btn selected" id="campaignBtn">
                 🗺️ Campaign
@@ -1700,7 +1699,7 @@
             if (selectedNumbers.length === 0) {
                 const placeholder = document.createElement('span');
                 placeholder.className = 'expression-placeholder';
-                placeholder.textContent = 'Start with any card';
+                placeholder.textContent = 'Tap here to clear board';
                 formulaRow.appendChild(placeholder);
                 container.appendChild(formulaRow);
 
@@ -1879,8 +1878,11 @@
                     
                     document.getElementById('successMsg').textContent = `Enemy Defeated! (+${points} pts)`;
                     setTimeout(() => {
-                        document.getElementById('successModal').classList.add('active');
                         playCelebration();
+                        window.showFloatingDamage(`Defeated! +${points}`);
+                        setTimeout(() => {
+                            nextLevel();
+                        }, 1200);
                     }, 1200);
                 } else {
                     clearAll();
