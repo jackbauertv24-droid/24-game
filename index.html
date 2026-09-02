@@ -2097,7 +2097,7 @@
             { name: "Minotaur Gladiator", url: "assets/minotaur.jpg", filter: "none" }
         ];
         
-        function spawnEnemy() {
+        function spawnEnemy(keepSame = false) {
             if (gameState.mode === 'campaign') {
                 gameState.enemyMaxHP = 24;
             } else {
@@ -2110,9 +2110,12 @@
             if (sprite) {
                 sprite.classList.remove('defeated', 'hit', 'hit-light', 'dodge');
                 
-                // Pick a random enemy variant
-                const activeEnemies = ENEMIES.filter(e => !e.hidden);
-                const enemyType = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
+                if (!keepSame || !gameState.currentEnemy) {
+                    const activeEnemies = ENEMIES.filter(e => !e.hidden);
+                    gameState.currentEnemy = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
+                }
+                const enemyType = gameState.currentEnemy;
+                
                 sprite.style.backgroundImage = `url('${enemyType.url}')`;
                 sprite.style.transition = 'opacity 0.4s';
                 sprite.style.opacity = '1';
@@ -2158,7 +2161,7 @@
             gameState.maxTime = gameState.timer;
             document.getElementById('timer').textContent = gameState.timer;
             document.getElementById('progress').style.width = '100%';
-            spawnEnemy();
+            spawnEnemy(true);
             startTimer();
         }
 
