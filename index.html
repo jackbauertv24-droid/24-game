@@ -2146,7 +2146,7 @@
             const cue = document.createElement('span');
             cue.className = 'expression-cue';
             cue.textContent = selectedNumbers.length === 4
-                ? (calc.value === 24 ? 'Complete — submitting…' : 'Complete — checking…')
+                ? (calc.status === 'invalid' ? 'Invalid operation!' : (calc.value === 24 ? 'Complete — submitting…' : 'Complete — checking…'))
                 : selectedNumbers.length === selectedOperators.length
                     ? 'Next: choose a card'
                     : 'Next: choose an operation';
@@ -2225,6 +2225,10 @@
                 setTimeout(() => document.querySelector('.game-area').classList.remove('shake'), 300);
                 
                 // Time is Health penalty
+                if (!gameState.isPractice) {
+                    gameState.playedCount++;
+                    saveStats();
+                }
                 let penalty = -10;
                 if (gameState.playerClass === 'paladin') {
                     penalty = -5;
@@ -2561,8 +2565,12 @@
         function retryLevel() {
             document.getElementById('failModal').classList.remove('active');
             clearAll();
-            gameState.timer = 60; // Base time for a fresh retry
-            gameState.maxTime = 60;
+            gameState.timer = getTimerForLevel(); // Base time for a fresh retry
+            gameState.maxTime = gameState.timer;
+            gameState.skillUses.level = 0;
+            if (gameState.level % 5 === 0 || (gameState.level-1) % 5 === 0) {
+                gameState.skillUses.boss = 0;
+            }
             document.getElementById('timer').textContent = gameState.timer;
             document.getElementById('progress').style.width = '100%';
             gameState.enemyCurrentHP = gameState.enemyMaxHP; // Reset HP
