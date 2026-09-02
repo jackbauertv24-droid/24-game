@@ -2634,9 +2634,14 @@
         document.getElementById('campaignBtn').onclick = function() {
             gameState.mode = 'campaign';
             gameState.isPractice = false;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
-            this.classList.add('selected');
-            document.getElementById('difficultySelect').style.display = 'block';
+            document.getElementById('modeModal').classList.remove('active');
+            document.getElementById('difficultyModal').classList.add('active');
+        };
+        
+        window.selectDifficulty = function(diff) {
+            gameState.difficulty = diff;
+            document.getElementById('difficultyModal').classList.remove('active');
+            document.getElementById('classModal').classList.add('active');
         };
 
         document.getElementById('endlessBtn').onclick = function() {
@@ -2740,6 +2745,18 @@
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 1000);
         };
+        
+        // Preload assets to prevent blank flickering
+        setTimeout(() => {
+            const images = [];
+            ENEMIES.forEach(e => {
+                if (e.url) { const img = new Image(); img.src = e.url; images.push(img); }
+            });
+            ['class_warrior.jpg', 'class_rogue.jpg', 'class_wizard.jpg', 'class_paladin.jpg', 'bg_boss.jpg', 'bg_dungeon.jpg'].forEach(url => {
+                const img = new Image(); img.src = 'assets/' + url; images.push(img);
+            });
+        }, 50);
+
         // --- END 2D ANIMATION HOOKS ---
     
 </script>
