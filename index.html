@@ -351,63 +351,24 @@
             text-shadow: 0 0 5px var(--primary);
         }
 
-        @media (max-width: 390px) {
-            .game-container {
-                padding: 10px;
-            }
-
-            .game-area {
-                gap: 8px;
-            }
-
-            .display-zone {
-                gap: 6px;
-            }
-
-            .gamepad {
-                gap: 8px;
-            }
-
-            .numbers-row, .operators-row {
-                gap: 8px;
-            }
-
-            .number-card {
-                width: 68px;
-                height: 78px;
-                font-size: 28px;
-            }
-
-            .expression-area {
-                min-height: 80px;
-                padding: 10px 12px;
-                overflow-x: auto;
-            }
-
-            .expression {
-                width: 100%;
-            }
-
-            .expression-formula {
-                font-size: 18px;
-                gap: 2px;
-            }
-
-            .expression-live-total {
-                font-size: 26px;
-                min-height: 30px;
-            }
-
-            .operator-btn {
-                width: 54px;
-                height: 54px;
-                font-size: 24px;
-            }
-
-            .action-btn {
-                padding: 13px 8px;
-                font-size: 14px;
-            }
+        @media (max-width: 480px), (max-height: 850px) {
+            .game-container { padding: 4px 8px; justify-content: space-evenly; }
+            .header { padding: 8px 10px; font-size: 13px; margin-bottom: 5px; }
+            .game-area { gap: 6px; }
+            .display-zone { gap: 4px; }
+            .monster-sprite { width: 150px; height: 150px; }
+            .monster-area { margin: 2px auto; }
+            .monster-health-bar-container { height: 16px; margin: 2px auto 5px auto; }
+            .gamepad { gap: 6px; }
+            .numbers-row, .operators-row { gap: 6px; }
+            .number-card { width: 64px; height: 68px; font-size: 26px; }
+            .operator-btn { width: 50px; height: 50px; font-size: 22px; }
+            .action-btn { padding: 10px 4px; font-size: 13px; }
+            .expression-area { min-height: 60px; padding: 6px 10px; }
+            .expression-formula { font-size: 16px; }
+            .expression-live-total { font-size: 24px; min-height: 26px; }
+            #bossLabel { font-size: 16px; margin-bottom: 2px; }
+            .controls { gap: 8px; margin-top: 5px; }
         }
 
         .number-card.selected {
