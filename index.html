@@ -31,7 +31,8 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        html, body {
+        html, button { touch-action: manipulation; }
+        body {
             height: 100%;
             overflow: hidden;
         }
@@ -369,6 +370,10 @@
             .expression-live-total { font-size: 20px; min-height: 22px; }
             #bossLabel { font-size: 14px; margin-bottom: 0px; }
             .controls { gap: 4px; margin-top: 2px; }
+            .gamepad-3d-wrapper { transform-style: flat; perspective: none; }
+            .number-card, .operator-btn { transform-style: flat; }
+            .number-card:focus-visible, .operator-btn:focus-visible { transform: none; box-shadow: none; border-color: var(--primary); }
+            .number-card:active, .operator-btn:active { transform: scale(0.95); box-shadow: none; }
             .modal-content { padding: 16px; width: 95%; }
             .mode-btn { padding: 10px; margin: 6px 0; font-size: 15px; }
             .mode-btn small { font-size: 11px; margin-top: 2px; display: block; }
@@ -1176,13 +1181,13 @@
     <div class="modal" id="modeModal">
         <div class="modal-content">
             <h2>🎮 24 Game</h2>
-                        <div class="stats-panel open" id="statsPanel" aria-label="Game statistics" style="margin-bottom: 20px;">
+                        <div class="stats-panel open" id="statsPanel" aria-label="Game statistics">
                 <div class="stat-card"><strong id="statSolved">0</strong><span>Solved</span></div>
                 <div class="stat-card"><strong id="statPlayed">0</strong><span>Played</span></div>
                 <div class="stat-card"><strong id="statAccuracy">0%</strong><span>Accuracy</span></div>
                 <div class="stat-card"><strong id="statBestStreak">0</strong><span>Best streak</span></div>
             </div>
-            <p>Choose your game mode:</p>
+            
             <div style="font-size: 13px; color: #fff; background: rgba(255,50,50,0.2); padding: 8px 12px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid rgba(255,50,50,0.4);">
                 ⚠️ <b>Warning:</b> Math is evaluated strictly Left-to-Right!
             </div>
@@ -1289,13 +1294,24 @@
                 }
                 applyTimeChange(-10);
                 showFloatingText('Intimidate!', '#ff5555', 'monsterArea');
-                playCombatEffect('block');
+                playCombatEffect('slash-heavy');
                 clearAll();
+                
                 if (gameState.mode === 'campaign') {
+                    if (!gameState.solvedPuzzles[gameState.difficulty].includes(gameState.currentPuzzleIndex)) {
+                        gameState.solvedPuzzles[gameState.difficulty].push(gameState.currentPuzzleIndex);
+                        localStorage.setItem('24-game-solved', JSON.stringify(gameState.solvedPuzzles));
+                    }
                     const puzzles = CAMPAIGN_PUZZLES[gameState.difficulty];
                     gameState.currentPuzzleIndex = (gameState.currentPuzzleIndex + 1) % puzzles.length;
                 }
-                loadPuzzle();
+                
+                doDamage(24);
+                if (gameState.enemyCurrentHP <= 0) {
+                    setTimeout(monsterDefeated, 500);
+                } else {
+                    setTimeout(loadPuzzle, 500);
+                }
             } else if (cls === 'rogue') {
                 if (gameState.skillUses.level >= 3) {
                     showFloatingText('Out of uses!', '#ff5555', 'monsterArea');
