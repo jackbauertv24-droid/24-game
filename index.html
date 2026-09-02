@@ -1219,7 +1219,7 @@
                 </div>
             </div>
             
-            <button class="modal-btn primary" id="startGameBtn" style="margin-top: 16px;">Start Game</button>
+            <button class="modal-btn primary" id="startGameBtn" style="margin-top: 16px;">Start Campaign</button>
         </div>
     </div>
 
@@ -2629,18 +2629,14 @@
         document.getElementById('endlessBtn').onclick = function() {
             gameState.mode = 'endless';
             gameState.isPractice = false;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
-            this.classList.add('selected');
-            document.getElementById('difficultySelect').style.display = 'none';
+            startGame();
         };
 
         document.getElementById('practiceBtn').onclick = function() {
             gameState.mode = 'campaign';
             gameState.isPractice = true;
             gameState.difficulty = 'easy';
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
-            this.classList.add('selected');
-            document.getElementById('difficultySelect').style.display = 'none';
+            startGame();
         };
 
         document.querySelectorAll('.difficulty-btn').forEach(btn => {
