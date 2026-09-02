@@ -1968,7 +1968,7 @@
             setTimeout(() => {
                 loadPuzzle();
                 startTimer();
-            }, 1000);
+            }, 2500);
         }
 
         function loadPuzzle() {
@@ -2040,7 +2040,7 @@
                 
                 document.getElementById('timer').textContent = gameState.timer;
                 document.getElementById('progress').style.width = `${(gameState.timer / gameState.maxTime) * 100}%`;
-            }, 1000);
+            }, 2500);
         }
 
         function spawnEnemy() {
@@ -2082,9 +2082,12 @@
             gameState.timer = getTimerForLevel();
             gameState.maxTime = gameState.timer;
             document.getElementById('timer').textContent = gameState.timer;
-            spawnEnemy();
-            loadPuzzle();
-            startTimer();
+            window.glWalk();
+            setTimeout(() => {
+                spawnEnemy();
+                loadPuzzle();
+                startTimer();
+            }, 2500);
         }
 
         function retryLevel() {
@@ -2404,6 +2407,8 @@
                 golem.add(rune);
             }
 
+            golem.scale.set(0.4, 0.4, 0.4);
+            golem.position.y = -2; // lower it slightly
             scene.add(golem);
         }
 
@@ -2412,7 +2417,7 @@
             const time = Date.now() * 0.001;
 
             // Camera follow
-            camera.position.z += (targetCamZ - camera.position.z) * 0.05;
+            camera.position.z += (targetCamZ - camera.position.z) * 0.02; // smoother, slower walk
             if (typeof tunnelMesh !== 'undefined') {
                 // Keep the tunnel centered around the camera's Z position
                 tunnelMesh.position.z = camera.position.z - 50;
@@ -2472,12 +2477,14 @@
         window.glBlock = () => { golemState = 'block'; stateTimer = 0; };
         window.glDeath = () => { golemState = 'death'; stateTimer = 0; };
         window.glWalk = () => { 
-            targetCamZ -= 20; 
-            golemBaseZ -= 20; 
+            targetCamZ -= 30; // walk deeper
+            golemBaseZ -= 30; 
+            // the old golem is already 'dead', leave it behind.
+            // spawn the new golem slightly later for a longer walk
             setTimeout(() => {
                 buildGolem();
                 golemState = 'idle';
-            }, 1000);
+            }, 2500); 
         };
         
         window.showFloatingDamage = (amt) => {
