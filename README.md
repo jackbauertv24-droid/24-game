@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/bg_arena.jpg" width="100%" style="border-radius: 12px; margin-bottom: 20px;"/>
+  <img src="assets/bg_boss.jpg" width="100%" style="border-radius: 12px; margin-bottom: 20px;"/>
   <h1>⚔️ 24 Game: RPG Edition</h1>
   <p>A fast-paced, math-puzzle RPG where your arithmetic skills keep you alive.</p>
   
@@ -29,10 +29,10 @@ This project transforms the classic **24 Math Puzzle** into a fully animated, hi
 ## 🖼️ Gallery
 <div align="center">
   <img src="assets/class_warrior.jpg" width="18%" style="border-radius: 8px;"/>
-  <img src="assets/demon_king.jpg" width="18%" style="border-radius: 8px;"/>
-  <img src="assets/lich_v2.jpg" width="18%" style="border-radius: 8px;"/>
-  <img src="assets/shadow_assassin_v2.jpg" width="18%" style="border-radius: 8px;"/>
-  <img src="assets/class_wizard.jpg" width="18%" style="border-radius: 8px;"/>
+  <img src="assets/demon_king_thumb.jpg" width="18%" style="border-radius: 8px;"/>
+  <img src="assets/lich_v2_thumb.jpg" width="18%" style="border-radius: 8px;"/>
+  <img src="assets/shadow_assassin_v2_thumb.jpg" width="18%" style="border-radius: 8px;"/>
+  <img src="assets/swamp_troll_v2_thumb.jpg" width="18%" style="border-radius: 8px;"/>
 </div>
 <br>
 
