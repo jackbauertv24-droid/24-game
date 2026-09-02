@@ -1457,6 +1457,7 @@
         }
 
         function monsterDefeated() {
+            gameState.started = false; // Lock out the UI during transition
             gameState.enemyCurrentHP = 0;
             updateHealthBar();
             clearInterval(timerInterval);
