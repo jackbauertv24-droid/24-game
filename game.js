@@ -2,6 +2,7 @@
         window.startGameWithClass = function(cls) {
             document.getElementById('classModal').classList.remove('active');
             window.pendingClass = cls;
+            gameState.playerClass = cls;
             
             const btn = document.getElementById('skillBtn');
             if (btn) {
@@ -11,8 +12,19 @@
                 if (cls === 'paladin') btn.innerHTML = '🛡️ Smite';
             }
             
-            initGame();
-            updateUI(); // ensure class info is rendered if needed
+            gameState.started = true;
+            gameState.timer = getTimerForLevel();
+            gameState.maxTime = gameState.timer;
+            
+            document.getElementById('timer').textContent = gameState.timer;
+            document.getElementById('progress').style.width = '100%';
+            document.getElementById('timerContainer').style.display = gameState.isPractice ? 'none' : 'block';
+            document.getElementById('progressContainer').style.display = gameState.isPractice ? 'none' : 'block';
+            document.getElementById('practiceNotice').style.display = gameState.isPractice ? 'block' : 'none';
+            
+            spawnEnemy();
+            loadPuzzle();
+            startTimer();
         };
 
         window.useSkill = function() {
@@ -935,20 +947,7 @@
 
         function startGame() {
             document.getElementById('modeModal').classList.remove('active');
-            
-            gameState.started = true;
-            gameState.timer = getTimerForLevel();
-            gameState.maxTime = gameState.timer;
-            
-            document.getElementById('timer').textContent = gameState.timer;
-            document.getElementById('progress').style.width = '100%';
-            document.getElementById('timerContainer').style.display = gameState.isPractice ? 'none' : 'block';
-            document.getElementById('progressContainer').style.display = gameState.isPractice ? 'none' : 'block';
-            document.getElementById('practiceNotice').style.display = gameState.isPractice ? 'block' : 'none';
-            
-            spawnEnemy();
-            loadPuzzle();
-            startTimer();
+            document.getElementById('classModal').classList.add('active');
         }
 
         function loadPuzzle() {
@@ -1156,6 +1155,8 @@
                 timer: 60,
                 maxTime: 60,
                 isPractice: preservedStats.isPractice,
+                playerClass: window.pendingClass || 'warrior',
+                skillUses: { level: 0, boss: 0 },
                 currentPuzzleIndex: 0,
                 solvedPuzzles: preservedStats.solvedPuzzles,
                 started: false,
