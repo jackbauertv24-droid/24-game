@@ -2321,6 +2321,11 @@
                 bossLabel.style.display = isBoss && !gameState.isPractice ? 'block' : 'none';
             }
             
+            const isActuallyBoss = isBoss && !gameState.isPractice;
+            document.body.style.background = isActuallyBoss 
+                ? "url('assets/bg_boss.jpg') center/cover no-repeat fixed, #111" 
+                : "url('assets/bg_dungeon.jpg') center/cover no-repeat fixed, #111";
+            
             if (!keepSame) {
                 gameState.enemyCurrentHP = gameState.enemyMaxHP;
             }
