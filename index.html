@@ -1067,10 +1067,7 @@
 
                     <div class="operators-row" id="operators"></div>
 
-                    <div class="move-tools" aria-label="Equation controls">
-                        <button class="move-btn" id="undoBtn" type="button" aria-label="Undo last move">↩ Undo</button>
-                        <button class="move-btn" id="clearBtn" type="button" aria-label="Clear equation">⌫ Clear</button>
-                    </div>
+                    
 
                     <div class="actions-row">
                         <button class="action-btn btn-hint" id="hintBtn">💡 Hint</button>
@@ -2183,7 +2180,7 @@
         document.getElementById('retryBtn').onclick = retryLevel;
         document.getElementById('restartBtn').onclick = resetGame;
         document.getElementById('completeBtn').onclick = resetGame;
-        document.getElementById('undoBtn').onclick = undoLastMove;
+        
         
         document.getElementById('hintBtn').onclick = showHint;
         document.getElementById('statsToggle').onclick = () => {
