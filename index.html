@@ -1389,7 +1389,9 @@
             started: false,
             solvedCount: 0,
             playedCount: 0,
-            bestStreak: 0
+            bestStreak: 0,
+            skillUses: { level: 0, boss: 0 },
+            playerClass: 'warrior'
         };
 
         let currentNumbers = [];
@@ -2291,9 +2293,9 @@
                     gameState.currentEnemy = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
                     
                     if (isBoss) {
-                        sprite.style.transform = 'translateX(-50%) scale(1.3)';
+                        sprite.style.transform = 'scale(1.3)';
                     } else {
-                        sprite.style.transform = 'translateX(-50%) scale(1)';
+                        sprite.style.transform = 'scale(1)';
                     }
                 }
                 const enemyType = gameState.currentEnemy;
