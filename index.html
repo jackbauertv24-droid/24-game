@@ -2100,38 +2100,6 @@
 
         function showModeSelect() {
             
-        function initCampaignPuzzles() {
-            const difficulties = [
-                { name: 'easy', numRange: [1, 10], ops: ['+', '−'] },
-                { name: 'medium', numRange: [1, 9], ops: ['+', '−', '×'] },
-                { name: 'hard', numRange: [1, 13], ops: ['+', '−', '×', '÷'] }
-            ];
-
-            difficulties.forEach(diff => {
-                let candidates = [];
-                let attempts = 0;
-                while(candidates.length < 30 && attempts < 5000) {
-                    attempts++;
-                    const nums = [];
-                    for (let i = 0; i < 4; i++) {
-                        nums.push(Math.floor(Math.random() * (diff.numRange[1] - diff.numRange[0] + 1)) + diff.numRange[0]);
-                    }
-                    const uniqueNums = [...new Set(nums)];
-                    if (uniqueNums.length < 2) continue;
-                    
-                    const solutions = findSolutions(nums, diff.ops);
-                    if (solutions.length > 0) {
-                        const numString = [...nums].sort((a,b)=>a-b).join(',');
-                        if (!candidates.some(c => c.key === numString)) {
-                            candidates.push({ key: numString });
-                            CAMPAIGN_PUZZLES[diff.name].push({ nums: [...nums] }); // RPG branch doesn't need hint here
-                        }
-                    }
-                }
-            });
-        }
-        initCampaignPuzzles();
-
         document.getElementById('modeModal').classList.add('active');
             document.getElementById('successModal').classList.remove('active');
             document.getElementById('failModal').classList.remove('active');
@@ -2225,6 +2193,38 @@
         };
         loadStats();
         updateStats();
+        function initCampaignPuzzles() {
+            const difficulties = [
+                { name: 'easy', numRange: [1, 10], ops: ['+', '−'] },
+                { name: 'medium', numRange: [1, 9], ops: ['+', '−', '×'] },
+                { name: 'hard', numRange: [1, 13], ops: ['+', '−', '×', '÷'] }
+            ];
+
+            difficulties.forEach(diff => {
+                let candidates = [];
+                let attempts = 0;
+                while(candidates.length < 30 && attempts < 5000) {
+                    attempts++;
+                    const nums = [];
+                    for (let i = 0; i < 4; i++) {
+                        nums.push(Math.floor(Math.random() * (diff.numRange[1] - diff.numRange[0] + 1)) + diff.numRange[0]);
+                    }
+                    const uniqueNums = [...new Set(nums)];
+                    if (uniqueNums.length < 2) continue;
+                    
+                    const solutions = findSolutions(nums, diff.ops);
+                    if (solutions.length > 0) {
+                        const numString = [...nums].sort((a,b)=>a-b).join(',');
+                        if (!candidates.some(c => c.key === numString)) {
+                            candidates.push({ key: numString });
+                            CAMPAIGN_PUZZLES[diff.name].push({ nums: [...nums] }); // RPG branch doesn't need hint here
+                        }
+                    }
+                }
+            });
+        }
+        initCampaignPuzzles();
+
         document.getElementById('modeModal').classList.add('active');
     </script>
 
@@ -2261,27 +2261,65 @@
             scene.add(pointLight);
 
             // Build Dungeon Tunnel
-            const wallGeo = new THREE.BoxGeometry(1, 10, 4);
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x2d3436, roughness: 0.9 });
-            const floorGeo = new THREE.PlaneGeometry(12, 4);
-            const floorMat = new THREE.MeshStandardMaterial({ color: 0x1e272e, roughness: 1 });
             
-            for(let i=0; i<40; i++) {
-                const z = -i * 4;
-                // Left Wall
-                const lw = new THREE.Mesh(wallGeo, wallMat);
-                lw.position.set(-6, 0, z);
-                scene.add(lw);
-                // Right Wall
-                const rw = new THREE.Mesh(wallGeo, wallMat);
-                rw.position.set(6, 0, z);
-                scene.add(rw);
-                // Floor
-                const floor = new THREE.Mesh(floorGeo, floorMat);
-                floor.rotation.x = -Math.PI / 2;
-                floor.position.set(0, -2, z);
-                scene.add(floor);
+        // Generate Procedural Textures
+        function createNoiseTexture(type) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            const imgData = ctx.createImageData(512, 512);
+            for (let i = 0; i < imgData.data.length; i += 4) {
+                let val = Math.random() * 255;
+                if(type === 'rock') {
+                    // Cellular-ish noise approximation
+                    let x = (i/4) % 512; let y = Math.floor((i/4) / 512);
+                    val = (Math.sin(x*0.05)*Math.cos(y*0.05)*128 + 128) * 0.5 + Math.random()*128;
+                }
+                if(type === 'stone') {
+                    val = Math.random() * 50 + 100;
+                    // Brick lines
+                    let x = (i/4) % 512; let y = Math.floor((i/4) / 512);
+                    if(y % 64 < 4 || (x + (Math.floor(y/64)%2)*32) % 128 < 4) val *= 0.3;
+                }
+                imgData.data[i] = imgData.data[i+1] = imgData.data[i+2] = val;
+                imgData.data[i+3] = 255;
             }
+            ctx.putImageData(imgData, 0, 0);
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        }
+        
+        const rockTex = createNoiseTexture('rock');
+        const stoneTex = createNoiseTexture('stone');
+        stoneTex.repeat.set(4, 20);
+
+            
+            // AD&D Style Infinite Cavern
+            const tunnelGeo = new THREE.CylinderGeometry(15, 15, 200, 32, 32, true);
+            const tunnelMat = new THREE.MeshStandardMaterial({ 
+                color: 0x3a3a40, 
+                roughness: 1.0, 
+                bumpMap: stoneTex, 
+                bumpScale: 0.5,
+                side: THREE.BackSide 
+            });
+            const tunnelMesh = new THREE.Mesh(tunnelGeo, tunnelMat);
+            tunnelMesh.rotation.x = Math.PI / 2;
+            tunnelMesh.position.z = -50;
+            scene.add(tunnelMesh);
+
+            // Add floating dust particles
+            const pGeo = new THREE.BufferGeometry();
+            const pPos = [];
+            for(let i=0; i<500; i++) {
+                pPos.push((Math.random()-0.5)*20, (Math.random()-0.5)*20, -Math.random()*100);
+            }
+            pGeo.setAttribute('position', new THREE.Float32BufferAttribute(pPos, 3));
+            const pMat = new THREE.PointsMaterial({color: 0xffffff, size: 0.1, transparent:true, opacity:0.3});
+            const particles = new THREE.Points(pGeo, pMat);
+            scene.add(particles);
 
             // Build Golem
             buildGolem();
@@ -2298,30 +2336,72 @@
         function buildGolem() {
             if(golem) scene.remove(golem);
             golem = new THREE.Group();
-            golem.position.set(0, 0, golemBaseZ);
+            golem.position.set(0, -1, golemBaseZ);
 
-            const mat = new THREE.MeshStandardMaterial({ color: 0x636e72, roughness: 0.7, flatShading: true });
-            const coreMat = new THREE.MeshStandardMaterial({ color: 0x0984e3, emissive: 0x0984e3, emissiveIntensity: 0.5 });
+            // High Poly Icosahedron for AD&D Stone Golem Look
+            const geoHead = new THREE.IcosahedronGeometry(1.5, 3);
+            const geoTorso = new THREE.IcosahedronGeometry(2.8, 3);
+            const geoArm = new THREE.IcosahedronGeometry(1.2, 3);
+            
+            // Randomize vertices to make it look like jagged rock
+            const deform = (geo, scale) => {
+                const pos = geo.attributes.position;
+                for(let i=0; i<pos.count; i++) {
+                    pos.setX(i, pos.getX(i) + (Math.random()-0.5)*scale);
+                    pos.setY(i, pos.getY(i) + (Math.random()-0.5)*scale);
+                    pos.setZ(i, pos.getZ(i) + (Math.random()-0.5)*scale);
+                }
+                geo.computeVertexNormals();
+            };
+            deform(geoHead, 0.3); deform(geoTorso, 0.5); deform(geoArm, 0.4);
 
-            torso = new THREE.Mesh(new THREE.BoxGeometry(2.5, 3, 1.5), mat);
-            torso.position.y = 1.5;
+            const mat = new THREE.MeshStandardMaterial({ 
+                color: 0x5a6066, 
+                roughness: 0.9, 
+                metalness: 0.1,
+                bumpMap: rockTex,
+                bumpScale: 0.8
+            });
+            const coreMat = new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0xff1111, emissiveIntensity: 2.0 });
+
+            torso = new THREE.Mesh(geoTorso, mat);
+            torso.position.y = 3;
             golem.add(torso);
 
-            const core = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1.6), coreMat);
-            core.position.y = 1.5;
+            const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 2), coreMat);
+            core.position.set(0, 3, 2);
             golem.add(core);
 
-            head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), mat);
-            head.position.y = 3.6;
+            head = new THREE.Mesh(geoHead, mat);
+            head.position.y = 6.5;
             golem.add(head);
 
-            leftArm = new THREE.Mesh(new THREE.BoxGeometry(1, 2.5, 1), mat);
-            leftArm.position.set(-1.8, 1.5, 0);
+            leftArm = new THREE.Group();
+            leftArm.position.set(-3.5, 4, 0);
+            const lMesh = new THREE.Mesh(geoArm, mat);
+            lMesh.position.y = -1.5;
+            leftArm.add(lMesh);
             golem.add(leftArm);
 
-            rightArm = new THREE.Mesh(new THREE.BoxGeometry(1, 2.5, 1), mat);
-            rightArm.position.set(1.8, 1.5, 0);
+            rightArm = new THREE.Group();
+            rightArm.position.set(3.5, 4, 0);
+            const rMesh = new THREE.Mesh(geoArm, mat);
+            rMesh.position.y = -1.5;
+            rightArm.add(rMesh);
             golem.add(rightArm);
+
+            // Legs
+            const geoLeg = new THREE.IcosahedronGeometry(1.4, 3);
+            deform(geoLeg, 0.3);
+            const lLeg = new THREE.Mesh(geoLeg, mat); lLeg.position.set(-1.5, 0.5, 0); golem.add(lLeg);
+            const rLeg = new THREE.Mesh(geoLeg, mat); rLeg.position.set(1.5, 0.5, 0); golem.add(rLeg);
+
+            // Add glowing runes floating around
+            for(let i=0; i<3; i++) {
+                const rune = new THREE.Mesh(new THREE.TetrahedronGeometry(0.3), coreMat);
+                rune.position.set((Math.random()-0.5)*10, 4+(Math.random()-0.5)*5, (Math.random()-0.5)*5);
+                golem.add(rune);
+            }
 
             scene.add(golem);
         }
@@ -2332,6 +2412,18 @@
 
             // Camera follow
             camera.position.z += (targetCamZ - camera.position.z) * 0.05;
+            // animate particles
+            scene.children.forEach(c => {
+                if(c.isPoints) {
+                    const pos = c.geometry.attributes.position;
+                    for(let i=0; i<pos.count; i++) {
+                        let z = pos.getZ(i) + 0.1;
+                        if(z > camera.position.z) z -= 100;
+                        pos.setZ(i, z);
+                    }
+                    pos.needsUpdate = true;
+                }
+            });
 
             // Golem State Machine
             if (golem && golemState === 'idle') {
