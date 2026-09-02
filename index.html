@@ -1484,10 +1484,16 @@
         }
 
         function gameOver() {
+            gameState.timer = 0;
             gameState.started = false;
             cancelAutoSubmit();
             clearInterval(timerInterval);
-            document.getElementById('failModal').classList.add('active');
+            document.getElementById('timer').textContent = 0;
+            document.getElementById('progress').style.width = '0%';
+            gameState.streak = 0;
+            gameState.multiplier = 1.0;
+            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('timeoutModal').classList.add('active');
         }
 
         const OPERATORS = ['+', '−', '×', '÷'];
@@ -2423,16 +2429,7 @@
                 gameState.timer--;
                 
                 if (gameState.timer <= 0) {
-                    gameState.timer = 0;
-                    gameState.started = false;
-                    cancelAutoSubmit();
-                    clearInterval(timerInterval);
-                    document.getElementById('timer').textContent = 0;
-                    document.getElementById('progress').style.width = '0%';
-                    gameState.streak = 0;
-                    gameState.multiplier = 1.0;
-                    document.getElementById('finalScore').textContent = gameState.score;
-                    document.getElementById('timeoutModal').classList.add('active');
+                    gameOver();
                     return;
                 }
                 
