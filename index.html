@@ -141,6 +141,7 @@
             mix-blend-mode: screen;
             /* Fade edges to transparent to prevent any visible square boundary */
             -webkit-mask-image: radial-gradient(circle at center, black 50%, transparent 70%);
+            filter: var(--enemy-filter, none);
             mask-image: radial-gradient(circle at center, black 50%, transparent 70%);
             animation: animIdle 0.8s step-end infinite;
         }
@@ -170,19 +171,30 @@
         }
 
         @keyframes animHit {
-            0% { background-position: 0% 33.33%; filter: brightness(2) hue-rotate(-50deg); }
+            0% { background-position: 0% 33.33%; filter: var(--enemy-filter, none) brightness(2) hue-rotate(-50deg); }
+            50% { background-position: 33.33% 33.33%; filter: var(--enemy-filter, none) brightness(1.5); }
+            100% { background-position: 33.33% 33.33%; filter: var(--enemy-filter, none); }
+        }
             50% { background-position: 33.33% 33.33%; filter: brightness(1.5); }
             100% { background-position: 33.33% 33.33%; }
         }
 
         @keyframes animBlock {
-            0% { background-position: 66.66% 33.33%; filter: brightness(1.2); }
+            0% { background-position: 66.66% 33.33%; filter: var(--enemy-filter, none) brightness(1.2); }
+            50% { background-position: 100% 33.33%; filter: var(--enemy-filter, none) brightness(1); }
+            100% { background-position: 100% 33.33%; filter: var(--enemy-filter, none); }
+        }
             50% { background-position: 100% 33.33%; filter: brightness(1); }
             100% { background-position: 100% 33.33%; }
         }
 
         @keyframes animDefeat {
-            0% { background-position: 0% 100%; filter: brightness(2) hue-rotate(-50deg); }
+            0% { background-position: 0% 100%; filter: var(--enemy-filter, none) brightness(2) hue-rotate(-50deg); }
+            25% { background-position: 33.33% 100%; filter: var(--enemy-filter, none) brightness(2) hue-rotate(-50deg); }
+            50% { background-position: 66.66% 100%; filter: var(--enemy-filter, none); }
+            75% { background-position: 100% 100%; filter: var(--enemy-filter, none); }
+            100% { background-position: 100% 100%; opacity: 0; filter: var(--enemy-filter, none); }
+        }
             25% { background-position: 33.33% 100%; filter: brightness(2) hue-rotate(-50deg); }
             50% { background-position: 66.66% 100%; }
             75% { background-position: 100% 100%; }
@@ -1575,8 +1587,11 @@
         }
 
         function selectNumber(idx) {
-            if (!gameState.started || selectedNumbers.length !== selectedOperators.length) return;
-            if (currentNumbers[idx].used && !selectedNumbers.includes(idx)) return;
+            if (!gameState.started) return;
+            // Allow undoing if it's already selected
+            const isUndo = selectedNumbers.includes(idx);
+            if (!isUndo && selectedNumbers.length !== selectedOperators.length) return;
+            if (currentNumbers[idx].used && !isUndo) return;
             playSound('select');
             
             if (selectedNumbers.includes(idx)) {
