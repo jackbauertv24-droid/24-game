@@ -1142,7 +1142,7 @@
                 <div class="class-card" onclick="startGameWithClass('rogue')" style="border: 2px solid #555; padding: 15px; border-radius: 8px; cursor: pointer;">
                     <img src="assets/class_rogue.jpg" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 2px solid #444; box-shadow: 0 4px 8px rgba(0,0,0,0.5);" alt="Rogue">
                     <h3 style="margin: 5px 0; color: #55ff55;">Rogue</h3>
-                    <p style="font-size: 12px; margin-bottom: 5px; color: #aaa;"><strong>Passive:</strong> +20s per solve (instead of 15s)</p>
+                    <p style="font-size: 12px; margin-bottom: 5px; color: #aaa;"><strong>Passive:</strong> +20s per solve (instead of 15s)<br><strong>Active:</strong> Swap a number (-5s)</p>
                     <p style="font-size: 12px; color: #aaa;"><strong>Active:</strong> Gain +10s (Once per Level)</p>
                 </div>
                 <div class="class-card" onclick="startGameWithClass('wizard')" style="border: 2px solid #555; padding: 15px; border-radius: 8px; cursor: pointer;">
@@ -1253,7 +1253,7 @@
             const btn = document.getElementById('skillBtn');
             if (btn) {
                 if (cls === 'warrior') btn.innerHTML = '🪓 Intimidate';
-                if (cls === 'rogue') btn.innerHTML = '🗡️ Pickpocket';
+                if (cls === 'rogue') btn.innerHTML = '🗡️ Sleight of Hand (-5s)';
                 if (cls === 'wizard') btn.innerHTML = '🧙‍♂️ Clairvoyance';
                 if (cls === 'paladin') btn.innerHTML = '🛡️ Smite';
             }
@@ -1289,13 +1289,52 @@
                 clearAll();
                 loadPuzzle();
             } else if (cls === 'rogue') {
-                if (gameState.skillUses.level >= 1) {
+                if (gameState.skillUses.level >= 3) {
                     showFloatingText('Out of uses!', '#ff5555', 'monsterArea');
                     return;
                 }
-                gameState.skillUses.level++;
-                showFloatingText('Pickpocket!', '#55ff55', 'monsterArea');
-                applyTimeChange(10);
+                if (gameState.timer <= 5 && !gameState.isPractice) {
+                    showFloatingText('Not enough time!', '#ff5555', 'monsterArea');
+                    return;
+                }
+                
+                const diffOps = gameState.difficulty === 'easy' ? ['+', '−'] :
+                               gameState.difficulty === 'medium' ? ['+', '−', '×'] :
+                               ['+', '−', '×', '÷'];
+                               
+                let success = false;
+                let indices = [0, 1, 2, 3];
+                // Try replacing the largest numbers first
+                indices.sort((a, b) => currentNumbers[b].value - currentNumbers[a].value);
+                
+                for (let idx of indices) {
+                    let origValue = currentNumbers[idx].value;
+                    for (let r = 1; r <= 9; r++) {
+                        if (r === origValue) continue;
+                        
+                        let testNums = currentNumbers.map(n => n.value);
+                        testNums[idx] = r;
+                        
+                        const sols = findSolutions(testNums, diffOps);
+                        if (sols.length > 0) {
+                            currentNumbers[idx].value = r;
+                            currentSolution = sols[0];
+                            success = true;
+                            break;
+                        }
+                    }
+                    if (success) break;
+                }
+                
+                if (success) {
+                    applyTimeChange(-5);
+                    gameState.skillUses.level++;
+                    showFloatingText('Sleight of Hand!', '#55ff55', 'monsterArea');
+                    playSound('select');
+                    clearAll(); // resets board selection
+                } else {
+                    showFloatingText('Cannot swap!', '#ff5555', 'monsterArea');
+                }
             } else if (cls === 'wizard') {
                 if (gameState.timer <= 5 && !gameState.isPractice) {
                     showFloatingText('Not enough time!', '#ff5555', 'monsterArea');
