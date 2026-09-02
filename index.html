@@ -2308,10 +2308,12 @@
             if (gameState.enemyCurrentHP <= 0) {
                 monsterDefeated();
             } else {
+                gameState.started = false; // Prevent multi-hit during animation
                 // Boss takes a hit but survives, load next puzzle
                 setTimeout(() => {
                     clearAll();
                     loadPuzzle();
+                    gameState.started = true;
                 }, 600);
             }
         }
@@ -2552,6 +2554,7 @@
                 spawnEnemy();
                 loadPuzzle();
                 startTimer();
+                gameState.started = true;
             }, 600);
         }
 
@@ -2565,6 +2568,7 @@
             gameState.enemyCurrentHP = gameState.enemyMaxHP; // Reset HP
             spawnEnemy(true);
             startTimer();
+            gameState.started = true;
         }
 
         function showModeSelect() {
