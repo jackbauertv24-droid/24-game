@@ -43,8 +43,4 @@ async function processImage(srcPath, destPath, thumbPath) {
 }
 
 const args = process.argv.slice(2);
-if (args.length !== 3) {
-    console.error("Usage: node process_enemy.js <srcPath> <destSpritePath> <destThumbPath>");
-    process.exit(1);
-}
 processImage(args[0], args[1], args[2]);
