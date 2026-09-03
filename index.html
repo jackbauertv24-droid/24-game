@@ -1030,11 +1030,6 @@
             z-index: 20;
         }
 
-      .poisoned-card {
-            background: #220022 !important;
-            color: transparent !important;
-            box-shadow: 0 0 10px #aa00aa inset;
-        }
     </style>
 </head>
 <body>
@@ -1462,7 +1457,6 @@
         }
 
         function monsterDefeated() {
-            clearMechanics();
             if (!gameState.started) return; // Completely mitigates Warrior bypass and Zombie state
             gameState.started = false; // Lock out the UI during transition
             gameState.enemyCurrentHP = 0;
@@ -1490,7 +1484,6 @@
         }
 
         function gameOver() {
-            clearMechanics();
             gameState.timer = 0;
             gameState.started = false;
             cancelAutoSubmit();
@@ -1506,55 +1499,6 @@
         const OPERATORS = ['+', '−', '×', '÷'];
         
         const CAMPAIGN_PUZZLES = { easy: [], medium: [], hard: [] };
-
-        let mechanicIntervals = [];
-
-        function clearMechanics() {
-            mechanicIntervals.forEach(clearInterval);
-            mechanicIntervals = [];
-            document.querySelectorAll('.card').forEach(c => {
-                c.classList.remove('poisoned-card');
-                c.style.color = '';
-                c.style.background = '';
-            });
-            if (window.hellfireActive) {
-                window.hellfireActive = false;
-            }
-        }
-
-        function startEnemyMechanic() {
-            clearMechanics();
-            const enemy = gameState.currentEnemy;
-            if (!enemy) return;
-
-            if (enemy.mechanic === 'drain') {
-                const interval = setInterval(() => {
-                    if (!gameState.started) return;
-                    showFloatingText('-2s (Drain)', '#ff5555', 'monsterArea');
-                    applyTimeChange(-2);
-                }, 10000);
-                mechanicIntervals.push(interval);
-            }
-            
-            if (enemy.mechanic === 'disorient') {
-                const interval = setInterval(() => {
-                    if (!gameState.started) return;
-                    const cards = document.querySelectorAll('.card:not(.selected)');
-                    if (cards.length > 0) {
-                        const randomCard = cards[Math.floor(Math.random() * cards.length)];
-                        randomCard.classList.add('poisoned-card');
-                        setTimeout(() => {
-                            randomCard.classList.remove('poisoned-card');
-                        }, 3000);
-                    }
-                }, 5000);
-                mechanicIntervals.push(interval);
-            }
-
-            if (enemy.mechanic === 'hellfire') {
-                window.hellfireActive = true;
-            }
-        }
 
         let gameState = {
             mode: 'campaign',
@@ -2280,19 +2224,6 @@
             
             const result = evaluateExpression();
             
-            
-            // Check Construct Armor
-            if (gameState.currentEnemy && gameState.currentEnemy.mechanic === 'armor') {
-                if (!selectedOperators.includes('*') && !selectedOperators.includes('/')) {
-                    playSound('shield');
-                    showFloatingText('🛡️ Blocked! Need * or /', '#aaa', 'monsterArea');
-                    document.querySelector('.game-area').classList.add('shake');
-                    setTimeout(() => document.querySelector('.game-area').classList.remove('shake'), 300);
-                    setTimeout(() => clearAll(), 500);
-                    return;
-                }
-            }
-
             // Incomplete or Invalid
             if (selectedNumbers.length !== 4 || selectedOperators.length !== 3 || result !== 24) {
                 playSound('wrong');
@@ -2305,10 +2236,6 @@
                     saveStats();
                 }
                 let penalty = -10;
-                if (gameState.currentEnemy && gameState.currentEnemy.mechanic === 'enrage') {
-                    penalty = -20;
-                    showFloatingText('💢 Enraged! (-20s)', '#ff5555', 'monsterArea');
-                }
                 if (gameState.playerClass === 'paladin') {
                     penalty = -5;
                     setTimeout(() => {
@@ -2499,11 +2426,7 @@
             document.getElementById('progress').style.width = `${gameState.maxTime > 0 ? (gameState.timer / gameState.maxTime) * 100 : 0}%`;
 
             timerInterval = setInterval(() => {
-                if (window.hellfireActive) {
-                gameState.timer -= 1.5;
-            } else {
                 gameState.timer--;
-            }
                 
                 if (gameState.timer <= 0) {
                     gameOver();
@@ -2517,42 +2440,56 @@
 
         
         const ENEMIES = [
-            { name: "Stone Golem", url: "assets/golem_spritesheet.jpg", filter: "none", faction: "construct", mechanic: "armor" },
-            { name: "Orc Warlord", url: "assets/orc.jpg", filter: "none", faction: "savage", mechanic: "enrage" },
-            { name: "Ghostly Wraith", url: "assets/wraith.jpg", filter: "none", faction: "undead", mechanic: "drain" },
-            { name: "Fire Elemental", url: "assets/fire_elemental.jpg", filter: "none", faction: "construct", mechanic: "armor" },
-            { name: "Armored Spider", url: "assets/spider.jpg", filter: "none", faction: "shadow", mechanic: "disorient" },
-            { name: "Lich King", url: "assets/lich_v2.jpg", filter: "none", faction: "undead", mechanic: "drain" },
-            { name: "Crystal Golem", url: "assets/crystal_golem.jpg", filter: "none", faction: "construct", mechanic: "armor" },
-            { name: "Minotaur Gladiator", url: "assets/minotaur_v2.jpg", filter: "none", faction: "savage", mechanic: "enrage" },
-            { name: "Shadow Assassin", url: "assets/shadow_assassin_v2.jpg", filter: "none", faction: "shadow", mechanic: "disorient" },
-            { name: "Stone Gargoyle", url: "assets/stone_gargoyle.jpg", filter: "none", faction: "construct", mechanic: "armor" },
-            { name: "Swamp Troll", url: "assets/swamp_troll_v2.jpg", filter: "none", faction: "abyssal", mechanic: "hellfire" },
-            { name: "Death Knight", url: "assets/death_knight.jpg", filter: "none", faction: "undead", mechanic: "drain" },
-            { name: "Venomous Basilisk", url: "assets/venom_basilisk.jpg", filter: "none", faction: "shadow", mechanic: "disorient" },
-            { name: "Storm Elemental", url: "assets/storm_elemental.jpg", filter: "none", faction: "construct", mechanic: "armor" },
-            { name: "Void Stalker", url: "assets/void_stalker.jpg", filter: "none", faction: "shadow", mechanic: "disorient" },
-            { name: "Frost Giant", url: "assets/frost_giant.jpg", filter: "none", faction: "abyssal", mechanic: "hellfire" },
-            { name: "Blood Fiend", url: "assets/blood_fiend.jpg", filter: "none", faction: "abyssal", mechanic: "hellfire" },
-            { name: "Nightmare Hound", url: "assets/nightmare_hound.jpg", filter: "none", faction: "abyssal", mechanic: "hellfire" },
-            { name: "Iron Golem", url: "assets/iron_golem.jpg", filter: "none", faction: "construct", mechanic: "armor" },
-            { name: "Necromancer", url: "assets/necromancer.jpg", filter: "none", faction: "undead", mechanic: "drain" },
-            { name: "Goblin Warlord", url: "assets/goblin_warlord.jpg", filter: "none", faction: "savage", mechanic: "enrage" },
-            { name: "Orc Brute", url: "assets/orc_brute.jpg", filter: "none", faction: "savage", mechanic: "enrage" },
-            { name: "Vampire Lord", url: "assets/vampire_lord.jpg", filter: "none", faction: "undead", mechanic: "drain" },
-            { name: "Demon King", url: "assets/demon_king.jpg", filter: "none", faction: "abyssal", mechanic: "hellfire" },
-            { name: "Ethereal Wraith", url: "assets/ethereal_wraith.jpg", filter: "none", faction: "undead", mechanic: "drain", hidden: true },
-            { name: "Magma Golem", url: "assets/magma_golem.jpg", filter: "none", faction: "construct", mechanic: "armor", hidden: true },
-            { name: "Crystal Spider", url: "assets/crystal_spider.jpg", filter: "none", faction: "shadow", mechanic: "disorient", hidden: true },
-            { name: "Celestial Knight", url: "assets/celestial_knight.jpg", filter: "none", faction: "construct", mechanic: "armor", hidden: true },
-            { name: "Fungal Behemoth", url: "assets/fungal_behemoth.jpg", filter: "none", faction: "abyssal", mechanic: "hellfire", hidden: true },
-            { name: "Storm Djinn", url: "assets/storm_djinn.jpg", filter: "none", faction: "abyssal", mechanic: "hellfire", hidden: true },
-            { name: "Sand Worm", url: "assets/sand_worm.jpg", filter: "none", faction: "savage", mechanic: "enrage", hidden: true },
-            { name: "Clockwork Automaton", url: "assets/clockwork_automaton.jpg", filter: "none", faction: "construct", mechanic: "armor", hidden: true },
-            { name: "Shadow Fiend", url: "assets/shadow_fiend.jpg", filter: "none", faction: "shadow", mechanic: "disorient", hidden: true },
-            { name: "Ice Queen", url: "assets/ice_queen.jpg", filter: "none", faction: "undead", mechanic: "drain", hidden: true },
-            { name: "Venomous Chimera", url: "assets/venomous_chimera.jpg", filter: "none", faction: "shadow", mechanic: "disorient", hidden: true },
-            { name: "Void Mage", url: "assets/void_mage.jpg", filter: "none", faction: "shadow", mechanic: "disorient", hidden: true }
+            { name: "Stone Golem", url: "assets/golem_spritesheet.jpg", filter: "none" },
+            { name: "Magma Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(150deg) saturate(2) brightness(1.2)", hidden: true },
+            { name: "Frost Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(210deg) saturate(1.5) brightness(1.5)", hidden: true },
+            { name: "Toxic Sludge Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(80deg) saturate(2) brightness(1.1)", hidden: true },
+            { name: "Void Golem", url: "assets/golem_spritesheet.jpg", filter: "hue-rotate(280deg) saturate(1.5) contrast(1.5)", hidden: true },
+            { name: "Golden Golem", url: "assets/golem_spritesheet.jpg", filter: "sepia(1) saturate(3) hue-rotate(10deg) brightness(1.3)", hidden: true },
+            { name: "Skeleton Warrior", url: "assets/skeleton.jpg", filter: "none", hidden: true },
+            { name: "Goblin Thief", url: "assets/goblin.jpg", filter: "none", hidden: true },
+            { name: "Vampire Bat", url: "assets/bat.jpg", filter: "none", hidden: true },
+            { name: "Beholder", url: "assets/beholder.jpg", filter: "none", hidden: true },
+            { name: "Red Dragon", url: "assets/dragon.jpg", filter: "none", hidden: true },
+            { name: "Orc Warlord", url: "assets/orc.jpg", filter: "none" },
+            { name: "Ghostly Wraith", url: "assets/wraith.jpg", filter: "none" },
+            { name: "Fire Elemental", url: "assets/fire_elemental.jpg", filter: "none" },
+            { name: "Armored Spider", url: "assets/spider.jpg", filter: "none" },
+            { name: "Lich King (Bugged)", url: "assets/lich.jpg", filter: "none", hidden: true },
+            { name: "Lich King", url: "assets/lich_v2.jpg", filter: "none" },
+            { name: "Crystal Golem", url: "assets/crystal_golem.jpg", filter: "none" },
+            { name: "Minotaur Gladiator (Defective AI Text)", url: "assets/minotaur.jpg", filter: "none", hidden: true },
+            { name: "Minotaur Gladiator", url: "assets/minotaur_v2.jpg", filter: "none" },
+            { name: "Shadow Assassin (Bugged)", url: "assets/shadow_assassin.jpg", filter: "none", hidden: true },
+            { name: "Shadow Assassin", url: "assets/shadow_assassin_v2.jpg", filter: "none" },
+            { name: "Stone Gargoyle", url: "assets/stone_gargoyle.jpg", filter: "none" },
+            { name: "Swamp Troll (Bugged)", url: "assets/swamp_troll.jpg", filter: "none", hidden: true },
+            { name: "Swamp Troll", url: "assets/swamp_troll_v2.jpg", filter: "none" },
+            { name: "Death Knight", url: "assets/death_knight.jpg", filter: "none" },
+            { name: "Venomous Basilisk", url: "assets/venom_basilisk.jpg", filter: "none" },
+            { name: "Storm Elemental", url: "assets/storm_elemental.jpg", filter: "none" },
+            { name: "Void Stalker", url: "assets/void_stalker.jpg", filter: "none" },
+            { name: "Frost Giant", url: "assets/frost_giant.jpg", filter: "none" },
+            { name: "Blood Fiend", url: "assets/blood_fiend.jpg", filter: "none" },
+            { name: "Nightmare Hound", url: "assets/nightmare_hound.jpg", filter: "none" },
+            { name: "Iron Golem", url: "assets/iron_golem.jpg", filter: "none" },
+            { name: "Necromancer", url: "assets/necromancer.jpg", filter: "none" },
+            { name: "Goblin Warlord", url: "assets/goblin_warlord.jpg", filter: "none" },
+            { name: "Orc Brute", url: "assets/orc_brute.jpg", filter: "none" },
+            { name: "Vampire Lord", url: "assets/vampire_lord.jpg", filter: "none" },
+            { name: "Demon King", url: "assets/demon_king.jpg", filter: "none" },
+            { name: "Ethereal Wraith", url: "assets/ethereal_wraith.jpg", filter: "none", hidden: true },
+            { name: "Magma Golem", url: "assets/magma_golem.jpg", filter: "none", hidden: true },
+            { name: "Crystal Spider", url: "assets/crystal_spider.jpg", filter: "none", hidden: true },
+            { name: "Celestial Knight", url: "assets/celestial_knight.jpg", filter: "none", hidden: true },
+            { name: "Fungal Behemoth", url: "assets/fungal_behemoth.jpg", filter: "none", hidden: true },
+            { name: "Storm Djinn", url: "assets/storm_djinn.jpg", filter: "none", hidden: true },
+            { name: "Sand Worm", url: "assets/sand_worm.jpg", filter: "none", hidden: true },
+            { name: "Clockwork Automaton", url: "assets/clockwork_automaton.jpg", filter: "none", hidden: true },
+            { name: "Shadow Fiend", url: "assets/shadow_fiend.jpg", filter: "none", hidden: true },
+            { name: "Ice Queen", url: "assets/ice_queen.jpg", filter: "none", hidden: true },
+            { name: "Venomous Chimera", url: "assets/venomous_chimera.jpg", filter: "none", hidden: true },
+            { name: "Void Mage", url: "assets/void_mage.jpg", filter: "none", hidden: true }
         ];
         
         function spawnEnemy(keepSame = false) {
@@ -2579,20 +2516,8 @@
                 sprite.classList.remove('defeated', 'hit', 'hit-light', 'dodge');
                 
                 if (!keepSame || !gameState.currentEnemy) {
-                    let currentFaction = 'savage';
-                    if (gameState.level > 5) currentFaction = 'construct';
-                    if (gameState.level > 10) currentFaction = 'shadow';
-                    if (gameState.level > 15) currentFaction = 'undead';
-                    if (gameState.level > 20) currentFaction = 'abyssal';
-                    if (gameState.isPractice) currentFaction = 'savage';
-
-                    const activeEnemies = ENEMIES.filter(e => !e.hidden && (e.faction === currentFaction || isActuallyBoss));
+                    const activeEnemies = ENEMIES.filter(e => !e.hidden);
                     gameState.currentEnemy = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
-                    if (!gameState.currentEnemy) {
-                        const fallback = ENEMIES.filter(e => !e.hidden);
-                        gameState.currentEnemy = fallback[Math.floor(Math.random() * fallback.length)];
-                    }
-                    startEnemyMechanic();
                     
                     if (isBoss) {
                         sprite.style.transform = 'scale(1.3)';
@@ -2673,7 +2598,6 @@
         }
 
         function resetGame() {
-            clearMechanics();
             const preservedStats = {
                 solvedCount: gameState.solvedCount,
                 playedCount: gameState.playedCount,
