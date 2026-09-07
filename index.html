@@ -2346,13 +2346,16 @@
             }
             applyTimeChange(timeGain);
 
+            // Count this solve before taking the maximum — the old order compared
+            // against the pre-solve streak, so the streak you had just achieved could
+            // never be recorded, and saveStats() persisted the low value.
+            gameState.streak++;
             if (!gameState.isPractice) {
                 gameState.playedCount++;
                 gameState.solvedCount++;
                 gameState.bestStreak = Math.max(gameState.bestStreak, gameState.streak);
                 saveStats();
             }
-            gameState.streak++;
             updateMultiplier();
             const points = Math.round((100 + (gameState.timer * 2)) * gameState.multiplier);
             gameState.score += points;
