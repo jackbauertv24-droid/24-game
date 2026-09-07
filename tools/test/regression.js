@@ -90,6 +90,31 @@ setTimeout(() => {
  key('Escape');    ok('X2  Escape clears', expr()==='');
  ok('X2  Undo and Clear buttons exist', !!doc.getElementById('undoBtn') && !!doc.getElementById('clearBtn'));
 
+ // --- skills must survive the transitions that set started back to true ---
+ doc.getElementById('endlessBtn').click(); w.startGameWithClass('wizard');
+ w.eval('gameState.level=1; gameState.timer=60; updateUI();');
+ const wizReady = !doc.getElementById('skillBtn').disabled;
+ // exactly what nextLevel()'s timeout does: refresh while stopped, then start
+ w.eval('setRunning(false); spawnEnemy(); loadPuzzle(); setRunning(true);');
+ ok('SKILL  Clairvoyance still usable after a level transition',
+    wizReady && !doc.getElementById('skillBtn').disabled);
+
+ doc.getElementById('endlessBtn').click(); w.startGameWithClass('paladin');
+ w.eval('gameState.level=5; gameState.timer=60; gameState.skillUses.boss=0; spawnEnemy(); setRunning(true); updateUI();');
+ const smiteReadyAtSpawn = !doc.getElementById('skillBtn').disabled;
+ // exactly what submit() does when a boss survives the hit
+ w.eval('setRunning(false); clearAll(); loadPuzzle(); setRunning(true);');
+ ok('SKILL  Smite still usable after a boss survives a hit',
+    smiteReadyAtSpawn && !doc.getElementById('skillBtn').disabled);
+ ok('SKILL  started is never assigned without refreshing the button',
+    !/gameState\.started = (true|false)/.test(src.replace(/function setRunning\([\s\S]*?\n        \}/,'')));
+
+ // --- the hint must not land on the equation panel ---
+ ok('HINT  lives inside the arena, not the display column',
+    doc.getElementById('hint').closest('.monster-area') !== null);
+ ok('HINT  has an opaque background rather than a 10% wash',
+    /\.hint-text \{[^}]*background: rgba\(12, 11, 20, 0\.97\)/.test(src));
+
  // --- layout stability: nothing may change the page's shape mid-puzzle ---
  w.eval('gameState.started=true; currentNumbers=[{value:13,used:false},{value:12,used:false},{value:11,used:false},{value:10,used:false}]; renderNumbers(); clearAll();');
  const shape = () => [...doc.getElementById('expression').children]

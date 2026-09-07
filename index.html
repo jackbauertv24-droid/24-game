@@ -967,21 +967,27 @@
         }
 
         .hint-text {
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.35;
             color: var(--accent);
             text-align: center;
-            padding: 8px;
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 8px;
+            padding: 12px 16px;
+            background: rgba(12, 11, 20, 0.97);
+            border: 1px solid rgba(255, 215, 0, 0.55);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.7), 0 0 20px rgba(255,215,0,0.12);
+            border-radius: 10px;
             /* Overlaid on the arena rather than inserted into the column: toggling
-               display used to push everything below it down by ~40px. */
+               display used to push everything below it down by ~40px. Anchored to
+               .display-zone with bottom: 8px it landed on top of the equation panel,
+               and at 10% background opacity the text underneath bled through it.
+               It now centres in the arena, over empty space, and is opaque. */
             position: absolute;
             left: 50%;
-            bottom: 8px;
-            transform: translateX(-50%);
-            width: calc(100% - 24px);
-            z-index: 12;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 92%;
+            z-index: 16;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s ease;
@@ -1221,6 +1227,7 @@
                         <div class="monster-health-bar" id="monsterHealth"></div>
                         <div id="hpText" style="position: absolute; width: 100%; text-align: center; color: white; font-weight: bold; font-size: 14px; top: 1px; text-shadow: 1px 1px 2px #000;">24/24</div>
                     </div>
+                    <div class="hint-text" id="hint" role="status"></div>
                 </div>
 
                 <div class="expression-area" id="expressionArea" aria-label="Equation. Tap a token to remove it and everything after it.">
@@ -1229,7 +1236,6 @@
                     </div>
                 </div>
 
-                <div class="hint-text" id="hint"></div>
 
                 
             </div>
@@ -1419,7 +1425,7 @@
             gameState.runSolved = 0;
             gameState.runAttempts = 0;
             gameState.runBestStreak = 0;
-            gameState.started = true;
+            setRunning(true);
             gameState.timer = getTimerForLevel();
             gameState.maxTime = gameState.timer;
             
@@ -1474,6 +1480,18 @@
                 }
             }
             return { label: '⭐ Skill', note: '', usable: false };
+        }
+
+        // The skill button's enabled state reads gameState.started, so the flag and
+        // the button have to move together. They did not: loadPuzzle(), clearAll() and
+        // spawnEnemy() each refresh the button, but in nextLevel() and in submit()'s
+        // surviving-boss branch they run while started is still false, and the
+        // `started = true` that follows refreshed nothing. Every skill was therefore
+        // left disabled at the start of each level and after each non-killing boss hit
+        // — most visibly Smite, which is boss-only, and Clairvoyance.
+        function setRunning(running) {
+            gameState.started = running;
+            updateSkillButton();
         }
 
         function updateSkillButton() {
@@ -1740,7 +1758,7 @@
 
         function monsterDefeated() {
             if (!gameState.started) return; // Completely mitigates Warrior bypass and Zombie state
-            gameState.started = false; // Lock out the UI during transition
+            setRunning(false); // Lock out the UI during transition
             gameState.enemyCurrentHP = 0;
             updateHealthBar();
             clearInterval(timerInterval);
@@ -1788,7 +1806,7 @@
         }
 
         function endRun() {
-            gameState.started = false;
+            setRunning(false);
             cancelAutoSubmit();
             clearInterval(timerInterval);
             timerInterval = null;
@@ -2732,12 +2750,12 @@
             if (gameState.enemyCurrentHP <= 0) {
                 monsterDefeated();
             } else {
-                gameState.started = false; // Prevent multi-hit during animation
+                setRunning(false); // Prevent multi-hit during animation
                 // Boss takes a hit but survives, load next puzzle
                 setTimeout(() => {
                     clearAll();
                     loadPuzzle();
-                    gameState.started = true;
+                    setRunning(true);
                 }, 600);
             }
         }
@@ -3035,7 +3053,7 @@
                 spawnEnemy();
                 loadPuzzle();
                 startTimer();
-                gameState.started = true;
+                setRunning(true);
             }, 600);
         }
 
