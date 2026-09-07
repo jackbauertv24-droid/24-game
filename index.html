@@ -1453,20 +1453,24 @@
             if (gameState.isPractice) return true;
             gameState.timer += amt;
             if (gameState.timer > 999) gameState.timer = 999;
-            
+
             const color = amt > 0 ? '#55ff55' : '#ff5555';
             const sign = amt > 0 ? '+' : '';
             showFloatingText(sign + amt + 's', color, 'timer');
-            
+
             if (gameState.timer <= 0) {
                 gameState.timer = 0;
-                document.getElementById('timer').textContent = 0;
+                renderTimer();
                 gameOver();
                 return false;
-            } else {
-                document.getElementById('timer').textContent = gameState.timer;
-                return true;
             }
+            // Move the anchor too, or the next tick would recompute the old value
+            // straight back over this one.
+            timerDeadline = Date.now() + gameState.timer * 1000;
+            // Keep the bar honest when a solve pushes time above the level's base.
+            if (gameState.timer > gameState.maxTime) gameState.maxTime = gameState.timer;
+            renderTimer();
+            return true;
         }
 
         function doDamage(amt) {
@@ -1579,6 +1583,8 @@
         let currentSolution = null;
         let autoSubmitTimer = null;
         let skillCooldownTimer = null;
+        let timerDeadline = 0;
+        let timerPaused = false;
 
         function cancelAutoSubmit() {
             if (autoSubmitTimer !== null) {
@@ -2485,27 +2491,61 @@
             document.getElementById('hint').classList.remove('visible');
         }
 
+        function renderTimer() {
+            document.getElementById('timer').textContent = gameState.timer;
+            const pct = gameState.maxTime > 0
+                ? Math.max(0, Math.min(100, (gameState.timer / gameState.maxTime) * 100))
+                : 0;
+            document.getElementById('progress').style.width = `${pct}%`;
+        }
+
+        // The countdown used to be a bare setInterval decrementing a counter, with no
+        // wall-clock anchor: interval drift made long runs slower than real time, and
+        // because browsers throttle background intervals, switching tabs during a hard
+        // board was free time. Anchor to a deadline, and pause on tab hide rather than
+        // letting the player bank seconds.
         function startTimer() {
             clearInterval(timerInterval);
+            timerInterval = null;
 
             if (gameState.isPractice) return;
 
             gameState.timer = Math.max(0, gameState.timer);
-            document.getElementById('timer').textContent = gameState.timer;
-            document.getElementById('progress').style.width = `${gameState.maxTime > 0 ? (gameState.timer / gameState.maxTime) * 100 : 0}%`;
+            timerDeadline = Date.now() + gameState.timer * 1000;
+            renderTimer();
 
             timerInterval = setInterval(() => {
-                gameState.timer--;
-                
+                const remaining = Math.max(0, Math.ceil((timerDeadline - Date.now()) / 1000));
+                if (remaining === gameState.timer) return;
+                gameState.timer = remaining;
+
                 if (gameState.timer <= 0) {
                     gameOver();
                     return;
                 }
-                
-                document.getElementById('timer').textContent = gameState.timer;
-                document.getElementById('progress').style.width = `${(gameState.timer / gameState.maxTime) * 100}%`;
-            }, 1000);
+                renderTimer();
+            }, 200);
         }
+
+        function pauseTimer() {
+            if (!timerInterval) return;
+            gameState.timer = Math.max(0, Math.ceil((timerDeadline - Date.now()) / 1000));
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timerPaused = true;
+            renderTimer();
+        }
+
+        function resumeTimer() {
+            if (!timerPaused) return;
+            timerPaused = false;
+            if (gameState.started && !gameState.isPractice && gameState.timer > 0) startTimer();
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) pauseTimer();
+            else resumeTimer();
+        });
 
         
         const ENEMIES = [
