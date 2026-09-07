@@ -649,6 +649,45 @@
             transform: translateZ(5px) scale(0.98);
         }
 
+        .action-btn:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 3px;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        /* Undo and Clear flank the wider Skill button rather than matching it. */
+        #undoBtn, #clearBtn {
+            flex: 0 1 88px;
+            padding: 16px 8px;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            color: var(--muted-btn, #b7b3c8);
+        }
+
+        #skillBtn { flex: 1.6; }
+
+        .key-hint {
+            margin-top: 8px;
+            text-align: center;
+            font-size: 11.5px;
+            color: #8a86a0;
+            letter-spacing: 0.2px;
+        }
+
+        .key-hint b {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Pointer-primary devices have no keyboard to hint at. */
+        @media (hover: none) {
+            .key-hint { display: none; }
+        }
+
         .btn-hint {
             border-color: var(--accent);
             color: var(--accent);
@@ -1115,8 +1154,11 @@
                     
 
                     <div class="actions-row">
+                        <button class="action-btn" id="undoBtn" title="Undo last step (Backspace)" aria-label="Undo last step">↩ Undo</button>
                         <button class="action-btn btn-hint" id="skillBtn" onclick="useSkill()" style="background: rgba(100,50,200,0.3); border-color: #9a66ff;">⭐ Skill</button>
+                        <button class="action-btn" id="clearBtn" title="Clear the board (Esc)" aria-label="Clear the board">✕ Clear</button>
                     </div>
+                    <p class="key-hint" aria-hidden="true">Keys <b>1</b>–<b>4</b> pick a card · <b>+ − × ÷</b> · <b>Backspace</b> undo · <b>Esc</b> clear</p>
                 </div>
             </div>
 
@@ -2847,6 +2889,65 @@
         
 
         
+        document.getElementById('undoBtn').onclick = undoLastMove;
+        document.getElementById('clearBtn').onclick = clearAll;
+
+        // The file previously contained no addEventListener at all: no digit keys, no
+        // operators, no Enter, no Backspace, no Escape. For a game played against a
+        // countdown that made the mouse the only way to compete — and made nothing
+        // here operable without a pointer.
+        const KEY_OPERATORS = {
+            '+': '+',
+            '-': '−', '−': '−', '_': '−',
+            '*': '×', 'x': '×', 'X': '×', '×': '×',
+            '/': '÷', ':': '÷', '÷': '÷'
+        };
+
+        document.addEventListener('keydown', event => {
+            if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+            const openModal = document.querySelector('.modal.active');
+            if (openModal) {
+                if (event.key === 'Escape') {
+                    const dismiss = openModal.querySelector('#galCloseBtn');
+                    if (dismiss) { event.preventDefault(); dismiss.click(); }
+                }
+                return;
+            }
+
+            if (!gameState.started) return;
+
+            // 1-4 pick by position rather than by value: card values run to 13, so
+            // mapping digits to values would be ambiguous.
+            if (event.key >= '1' && event.key <= '4') {
+                event.preventDefault();
+                selectNumber(Number(event.key) - 1);
+                return;
+            }
+
+            const op = KEY_OPERATORS[event.key];
+            if (op) {
+                event.preventDefault();
+                if (getAllowedOps().includes(op)) {
+                    selectOperator(op);
+                } else {
+                    showFloatingText(`${op} is locked here`, '#ffaa00', 'monsterArea');
+                }
+                return;
+            }
+
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                submit();
+            } else if (event.key === 'Backspace') {
+                event.preventDefault();
+                undoLastMove();
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                clearAll();
+            }
+        });
+
         document.getElementById('nextBtn').onclick = nextLevel;
         document.getElementById('retryBtn').onclick = retryLevel;
         document.getElementById('restartBtn').onclick = resetGame;
