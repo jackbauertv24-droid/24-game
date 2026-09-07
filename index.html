@@ -977,6 +977,30 @@
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
             }
+
+            /* The monsters are animated BY a stepped background-position keyframe
+               loop — that is how the sprite sheet works. The blanket rule above
+               doesn't calm that animation, it deletes it: the sprite snaps to one
+               frame, and the defeat sequence (which ends at opacity: 0) resolves
+               instantly to an invisible enemy. Slow the frame cycling down instead
+               of removing it, and drop the motion that is actually motion. */
+            .monster-sprite {
+                animation-duration: 1.6s !important;
+                animation-iteration-count: infinite !important;
+            }
+            .monster-sprite.hit,
+            .monster-sprite.hit-light,
+            .monster-sprite.dodge {
+                animation-duration: 0.6s !important;
+                animation-iteration-count: 1 !important;
+            }
+            .monster-sprite.defeated {
+                animation-duration: 1.6s !important;
+                animation-iteration-count: 1 !important;
+            }
+            .shake, .flash-magic, .floating-text, .floating-dmg {
+                animation-duration: 0.01ms !important;
+            }
         }
     
         .floating-dmg {
@@ -991,9 +1015,11 @@
             text-shadow: 0 0 10px #000, 2px 2px 0 #000;
             pointer-events: none;
             z-index: 100;
-            animation: floatUp 1s ease-out forwards;
+            animation: floatDamage 1s ease-out forwards;
         }
-        @keyframes floatUp {
+        /* Renamed from floatUp: a second @keyframes floatUp in the mid-body style
+           block redefined this one, silently dropping the scale(1.5) punch-in. */
+        @keyframes floatDamage {
             0% { opacity: 1; transform: translate(-50%, -50%) scale(1.5); }
             100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
         }
@@ -1981,6 +2007,8 @@
             currentNumbers.forEach((num, idx) => {
                 const card = document.createElement('button');
                 card.type = 'button';
+                // The Rogue's Sleight of Hand looks the swapped card up by this id.
+                card.id = 'number-' + idx;
                 card.className = `number-card${num.used ? ' used' : ''}`;
                 card.textContent = num.value;
                 card.setAttribute('role', 'button');
@@ -2578,6 +2606,10 @@
                 const enemyType = gameState.currentEnemy;
                 
                 sprite.style.backgroundImage = `url('${enemyType.url}')`;
+                // .monster-sprite reads this via filter: var(--enemy-filter, none).
+                // Only the bestiary used to set it, so every palette-swap variant in
+                // ENEMIES rendered identically in combat.
+                sprite.style.setProperty('--enemy-filter', enemyType.filter || 'none');
                 sprite.style.transition = 'opacity 0.4s';
                 sprite.style.opacity = '1';
             }
