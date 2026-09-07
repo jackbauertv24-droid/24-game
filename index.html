@@ -1580,6 +1580,10 @@
                     monsterDefeated();
                 }
             }
+
+            // Every other branch refreshes the button via applyTimeChange, but Smite
+            // costs no time — so the button kept offering a use that was already spent.
+            updateSkillButton();
         };
 
         // --- Modals as real dialogs -------------------------------------------

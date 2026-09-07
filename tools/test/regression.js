@@ -115,6 +115,14 @@ setTimeout(() => {
  w.eval('gameState.skillUses.level=3; updateUI();');
  ok('X6  skill button shows state and disables', doc.getElementById('skillBtn').disabled && /0 left/.test(doc.getElementById('skillBtn').textContent));
 
+ // Smite costs no time, so it does not refresh the button via applyTimeChange.
+ doc.getElementById('endlessBtn').click(); w.startGameWithClass('paladin');
+ w.eval('gameState.level=5; gameState.skillUses.boss=0; spawnEnemy(); gameState.started=true; updateUI();');
+ const smiteReady = !doc.getElementById('skillBtn').disabled;
+ w.useSkill();
+ ok('X6  Smite disables its own button once spent',
+    smiteReady && doc.getElementById('skillBtn').disabled && /used this boss/.test(doc.getElementById('skillBtn').textContent));
+
  // --- X8 practice ---
  w.eval('resetGame();'); doc.getElementById('practiceBtn').click(); w.startGameWithClass('warrior');
  w.useSkill();
