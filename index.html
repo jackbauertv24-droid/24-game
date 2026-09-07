@@ -703,6 +703,20 @@
 
         #skillBtn { flex: 1.6; }
 
+        /* Cost / uses / cooldown, on the button face instead of a punishment message. */
+        #skillBtn small {
+            display: block;
+            margin-top: 3px;
+            font-size: 10.5px;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+            text-transform: none;
+            color: #c3b0ff;
+            opacity: 0.85;
+        }
+
+        #skillBtn:disabled small { color: #9a95ad; }
+
         .key-hint {
             margin-top: 8px;
             text-align: center;
@@ -1240,7 +1254,7 @@
                 </button>
                 <button class="mode-btn" onclick="selectDifficulty('medium')" style="text-align: left; background: rgba(255, 255, 85, 0.1); border-color: #ffff55;">
                     🟡 Medium
-                    <small>Numbers 1-13. Operators: <b>+ , − , ×</b></small>
+                    <small>Numbers 1-9. Operators: <b>+ , − , ×</b></small>
                 </button>
                 <button class="mode-btn" onclick="selectDifficulty('hard')" style="text-align: left; background: rgba(255, 85, 85, 0.1); border-color: #ff5555;">
                     🔴 Hard
@@ -1257,19 +1271,19 @@
                     <img src="assets/class_warrior.jpg" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 2px solid #444; box-shadow: 0 4px 8px rgba(0,0,0,0.5);" alt="Warrior">
                     <h3 style="margin: 5px 0; color: #ff5555;">Warrior</h3>
                     <p style="font-size: 12px; margin-bottom: 5px; color: #aaa;"><strong>Passive:</strong> 2x Damage to Bosses</p>
-                    <p style="font-size: 12px; color: #aaa;"><strong>Active:</strong> Skip Puzzle (Costs 10s)</p>
+                    <p style="font-size: 12px; color: #aaa;"><strong>Active:</strong> Skip puzzle, 10s cooldown (Costs 10s)</p>
                 </div>
                 <div class="class-card" onclick="startGameWithClass('rogue')" style="border: 2px solid #555; padding: 15px; border-radius: 8px; cursor: pointer;">
                     <img src="assets/class_rogue.jpg" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 2px solid #444; box-shadow: 0 4px 8px rgba(0,0,0,0.5);" alt="Rogue">
                     <h3 style="margin: 5px 0; color: #55ff55;">Rogue</h3>
                     <p style="font-size: 12px; margin-bottom: 5px; color: #aaa;"><strong>Passive:</strong> +20s per solve</p>
-                    <p style="font-size: 12px; color: #aaa;"><strong>Active:</strong> Swap a number (-5s)</p>
+                    <p style="font-size: 12px; color: #aaa;"><strong>Active:</strong> Swap a number, 3 per level (-5s)</p>
                 </div>
                 <div class="class-card" onclick="startGameWithClass('wizard')" style="border: 2px solid #555; padding: 15px; border-radius: 8px; cursor: pointer;">
                     <img src="assets/class_wizard.jpg" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 2px solid #444; box-shadow: 0 4px 8px rgba(0,0,0,0.5);" alt="Wizard">
                     <h3 style="margin: 5px 0; color: #5555ff;">Wizard</h3>
-                    <p style="font-size: 12px; margin-bottom: 5px; color: #aaa;"><strong>Passive:</strong> +10s if using Division (÷)</p>
-                    <p style="font-size: 12px; color: #aaa;"><strong>Active:</strong> Show Hint (Costs 20s)</p>
+                    <p style="font-size: 12px; margin-bottom: 5px; color: #aaa;"><strong>Passive:</strong> Arcane Surge: +10s if using Division (÷)</p>
+                    <p style="font-size: 12px; color: #aaa;"><strong>Active:</strong> Show hint / Clairvoyance (Costs 20s)</p>
                 </div>
                 <div class="class-card" onclick="startGameWithClass('paladin')" style="border: 2px solid #555; padding: 15px; border-radius: 8px; cursor: pointer;">
                     <img src="assets/class_paladin.jpg" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 2px solid #444; box-shadow: 0 4px 8px rgba(0,0,0,0.5);" alt="Paladin">
@@ -1364,14 +1378,8 @@
             window.pendingClass = cls;
             gameState.playerClass = cls;
             
-            const btn = document.getElementById('skillBtn');
-            if (btn) {
-                if (cls === 'warrior') btn.innerHTML = '🪓 Intimidate';
-                if (cls === 'rogue') btn.innerHTML = '🗡️ Sleight of Hand (-5s)';
-                if (cls === 'wizard') btn.innerHTML = '🧙‍♂️ Clairvoyance (-20s)';
-                if (cls === 'paladin') btn.innerHTML = '🛡️ Smite';
-            }
-            
+            updateSkillButton();
+
             gameState.started = true;
             gameState.timer = getTimerForLevel();
             gameState.maxTime = gameState.timer;
@@ -1386,6 +1394,49 @@
             loadPuzzle();
             startTimer();
         };
+
+        // The button relabelled itself per class but never showed state: how many
+        // uses were left, what it cost, whether it was on cooldown or usable at all.
+        // All of that surfaced only as floating red text *after* you tapped — the
+        // game taught its own mechanics by punishing you for not knowing them.
+        function describeSkill() {
+            const isBoss = (gameState.level % 5 === 0) && !gameState.isPractice;
+            const free = gameState.isPractice;
+            switch (gameState.playerClass) {
+                case 'warrior':
+                    if (isBoss) return { label: '🪓 Intimidate', note: 'bosses resist', usable: false };
+                    if (gameState.skillCooldown) return { label: '🪓 Intimidate', note: 'cooling down', usable: false };
+                    if (!free && gameState.timer <= 10) return { label: '🪓 Intimidate', note: 'needs 10s', usable: false };
+                    return { label: '🪓 Intimidate', note: free ? 'skip puzzle' : '−10s', usable: true };
+                case 'rogue': {
+                    const left = 3 - gameState.skillUses.level;
+                    if (left <= 0) return { label: '🗡️ Sleight of Hand', note: '0 left this level', usable: false };
+                    if (!free && gameState.timer <= 5) return { label: '🗡️ Sleight of Hand', note: 'needs 5s', usable: false };
+                    return { label: '🗡️ Sleight of Hand', note: `${free ? '' : '−5s · '}${left} left`, usable: true };
+                }
+                case 'wizard': {
+                    const shown = document.getElementById('hint').classList.contains('visible');
+                    if (shown) return { label: '🧙‍♂️ Clairvoyance', note: 'hint showing', usable: false };
+                    if (!free && gameState.timer <= 20) return { label: '🧙‍♂️ Clairvoyance', note: 'needs 20s', usable: false };
+                    return { label: '🧙‍♂️ Clairvoyance', note: free ? 'show hint' : '−20s', usable: true };
+                }
+                case 'paladin': {
+                    if (!isBoss) return { label: '🛡️ Smite', note: 'bosses only', usable: false };
+                    if (gameState.skillUses.boss >= 1) return { label: '🛡️ Smite', note: 'used this boss', usable: false };
+                    return { label: '🛡️ Smite', note: '24 dmg · 1 per boss', usable: true };
+                }
+            }
+            return { label: '⭐ Skill', note: '', usable: false };
+        }
+
+        function updateSkillButton() {
+            const btn = document.getElementById('skillBtn');
+            if (!btn) return;
+            const { label, note, usable } = describeSkill();
+            btn.innerHTML = `${label}${note ? `<small>${note}</small>` : ''}`;
+            btn.disabled = !usable || !gameState.started;
+            btn.setAttribute('aria-label', `${label.replace(/^\S+\s/, '')}${note ? ', ' + note : ''}`);
+        }
 
         window.useSkill = function() {
             if (gameState.enemyCurrentHP <= 0) return;
@@ -1415,6 +1466,7 @@
                     skillCooldownTimer = null;
                     gameState.skillCooldown = false;
                     if (btn) btn.style.opacity = '1';
+                    updateSkillButton();
                 }, 5000);
 
                 if (!applyTimeChange(-10)) return;
@@ -1490,6 +1542,11 @@
                 }
                 if (gameState.timer <= 20 && !gameState.isPractice) {
                     showFloatingText('Not enough time!', '#ff5555', 'monsterArea');
+                    return;
+                }
+                // Never charge 20 seconds for a hint we cannot produce.
+                if (!currentSolution || !/=/.test(currentSolution)) {
+                    showFloatingText('No hint for this board!', '#ffaa00', 'monsterArea');
                     return;
                 }
                 if (!applyTimeChange(-20)) return;
@@ -1613,6 +1670,7 @@
             // Keep the bar honest when a solve pushes time above the level's base.
             if (gameState.timer > gameState.maxTime) gameState.maxTime = gameState.timer;
             renderTimer();
+            updateSkillButton();
             return true;
         }
 
@@ -2463,6 +2521,7 @@
             renderNumbers();
             updateExpression();
             document.getElementById('hint').classList.remove('visible');
+            updateSkillButton();
         }
 
         function evaluateExpression() {
@@ -2590,6 +2649,7 @@
                 hintEl.textContent = `💡 ${currentSolution}`;
                 hintEl.classList.add('visible');
             }
+            updateSkillButton();
         }
 
         function updateMultiplier() {
@@ -2613,6 +2673,7 @@
             document.getElementById('streak').textContent = gameState.streak;
             document.getElementById('multiplier').textContent = gameState.multiplier.toFixed(1);
             updateStats();
+            updateSkillButton();
             
             const diffEl = document.getElementById('difficulty');
             // Read the badge off the same tier the puzzles are generated from,
@@ -2828,6 +2889,7 @@
             }
             
             updateHealthBar();
+            updateSkillButton();
         }
 
         function updateHealthBar() {

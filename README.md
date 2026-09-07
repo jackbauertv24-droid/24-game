@@ -20,9 +20,9 @@ This project transforms the classic **24 Math Puzzle** into a fully animated, hi
 * **4 Unique Playable Classes:** 
   * 🪓 **Warrior:** Sacrifice time to execute enemies instantly with *Intimidate*.
   * 🗡️ **Rogue:** Reroll annoying numbers with *Sleight of Hand*.
-  * 🔮 **Wizard:** Farm massive bonus time with *Arcane Surge* by solving with division.
-  * 🛡️ **Paladin:** Survive lethal blows and heal with *Smite*.
-* **Massive Bestiary:** Battle against **24 unique AI-generated, fully animated monsters**, ranging from Goblin Thieves to the terrifying Demon King.
+  * 🔮 **Wizard:** Farm bonus time with the *Arcane Surge* passive by solving with division, or spend 20s on *Clairvoyance* to reveal the answer.
+  * 🛡️ **Paladin:** Take half the penalty for a wrong answer, and *Smite* a boss for 24 damage once per fight.
+* **Massive Bestiary:** Battle against **24 unique AI-generated, fully animated monsters** (with more hidden in the bestiary data), ranging from Goblin Thieves to the terrifying Demon King.
 * **Campaign & Endless Modes:** Conquer 30 hand-curated levels across three distinct difficulty tiers, or see how long you can survive in Endless Mode.
 * **Zero Dependencies:** Built completely in a single `index.html` file using Vanilla JavaScript, HTML, and CSS. No React, no bundlers, no bloat.
 
