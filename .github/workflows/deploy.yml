@@ -27,19 +27,10 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      # Publish only what the game actually needs. This previously uploaded
-      # path: '.', which shipped node_modules and every one-off build script.
-      - name: Stage site
-        run: |
-          mkdir -p _site
-          cp index.html README.md _site/
-          cp -r assets _site/
-          du -sh _site
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '_site'
+          path: '.'
 
       - name: Deploy to GitHub Pages
         id: deployment
