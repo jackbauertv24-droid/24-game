@@ -590,48 +590,6 @@
             text-align: center;
         }
 
-        .move-tools {
-            display: flex;
-            gap: 10px;
-            transform-style: preserve-3d;
-        }
-
-        .move-btn {
-            flex: 1;
-            min-height: 48px;
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            background: linear-gradient(145deg, #2a2a35 0%, #1a1a24 100%);
-            color: var(--light);
-            font: 600 15px var(--font-ui);
-            box-shadow: 0 4px 0 #151520, 0 8px 14px rgba(0,0,0,0.4);
-            cursor: pointer;
-            transition: all 0.15s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transform: translateZ(10px);
-            position: relative;
-            z-index: 10;
-        }
-
-        .move-btn:active {
-            transform: translateZ(5px) translateY(3px);
-            box-shadow: 0 1px 0 #151520, 0 3px 7px rgba(0,0,0,0.4);
-        }
-
-        .move-btn:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-        }
-
-        .result.correct {
-            color: var(--success);
-        }
-
-        .result.wrong {
-            color: var(--error);
-        }
-
         .operators-row {
             display: flex;
             justify-content: center;
@@ -1026,16 +984,6 @@
             text-align: center;
         }
 
-        .info-notice {
-            background: rgba(0,0,0,0.4);
-            color: #88a;
-            padding: 6px 12px;
-            border-radius: 10px;
-            font-size: 12px;
-            text-align: center;
-            border: 1px solid var(--card-border);
-        }
-
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-10px); }
@@ -1044,52 +992,6 @@
 
         .shake {
             animation: shake 0.3s ease;
-        }
-
-        .difficulty-selector {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin: 16px 0;
-            flex-wrap: wrap;
-        }
-
-        .difficulty-btn {
-            padding: 10px 20px;
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            background: rgba(0,0,0,0.3);
-            font-family: var(--font-ui);
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--light);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-        }
-
-        .difficulty-btn.selected {
-            border-color: var(--primary);
-            background: rgba(0, 240, 255, 0.2);
-            color: white;
-            box-shadow: 0 0 10px rgba(0,240,255,0.2);
-        }
-
-        .stats-toggle {
-            align-self: center;
-            padding: 6px 12px;
-            border: 1px solid var(--card-border);
-            border-radius: 10px;
-            background: rgba(0,0,0,0.5);
-            color: #99a;
-            font: 700 12px var(--font-ui);
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-
-        .stats-toggle:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
         }
 
         .stats-panel {
@@ -1404,24 +1306,6 @@
         </div>
     </div>
 
-    <div class="modal" id="successModal" role="dialog" aria-modal="true" aria-labelledby="successTitle">
-        <div class="modal-content">
-            <div class="celebration-scene" id="celebrationScene" aria-hidden="true">
-                <div class="celebration-core">★</div>
-            </div>
-            <h2 id="successTitle">🎉 Correct!</h2>
-            <p id="successMsg">+100 points</p>
-            <button class="modal-btn primary" id="nextBtn">Next Level →</button>
-        </div>
-    </div>
-
-    <div class="modal" id="failModal" role="dialog" aria-modal="true" aria-labelledby="failTitle">
-        <div class="modal-content">
-            <h2 id="failTitle">😢 Not 24</h2>
-            <p>Your expression equals <span id="wrongResult">0</span></p>
-            <button class="modal-btn primary" id="retryBtn">Try Again</button>
-        </div>
-    </div>
 
     <div class="modal" id="timeoutModal" role="dialog" aria-modal="true" aria-labelledby="timeoutTitle">
         <div class="modal-content">
@@ -1433,6 +1317,9 @@
 
     <div class="modal" id="completeModal" role="dialog" aria-modal="true" aria-labelledby="completeTitle">
         <div class="modal-content">
+            <div class="celebration-scene" id="celebrationScene" aria-hidden="true">
+                <div class="celebration-core">★</div>
+            </div>
             <h2 id="completeTitle">🏆 Completed!</h2>
             <p>You've completed all puzzles in this difficulty!</p>
             <button class="modal-btn primary" id="replayBtn">Play This Difficulty Again</button>
@@ -2548,7 +2435,6 @@
             });
             selectedNumbers = selectedNumbers.slice(0, index);
             selectedOperators = selectedOperators.slice(0, Math.max(0, index - 1));
-            localStorage.setItem('24-game-edit-cue-seen', '1');
             renderNumbers();
             updateExpression();
         }
@@ -2560,14 +2446,12 @@
             });
             selectedNumbers = selectedNumbers.slice(0, index + 1);
             selectedOperators = selectedOperators.slice(0, index);
-            localStorage.setItem('24-game-edit-cue-seen', '1');
             renderNumbers();
             updateExpression();
         }
 
         function undoLastMove() {
             if (!gameState.started) return;
-            localStorage.setItem('24-game-edit-cue-seen', '1');
             if (selectedNumbers.length > selectedOperators.length) {
                 const lastIdx = selectedNumbers.pop();
                 currentNumbers[lastIdx].used = false;
@@ -2771,6 +2655,7 @@
                 if (solved.length >= puzzles.length) {
                     endRun();
                     openModal('completeModal');
+                    playCelebration();
                     return;
                 }
                 
@@ -2983,12 +2868,11 @@
         }
 
         function nextLevel() {
-            closeModal('successModal');
-            
             if (gameState.mode === 'campaign') {
                 if (gameState.solvedPuzzles[gameState.difficulty].length >= CAMPAIGN_PUZZLES[gameState.difficulty].length) {
                     endRun();
                     openModal('completeModal');
+                    playCelebration();
                     return;
                 }
             }
@@ -3008,28 +2892,9 @@
             }, 600);
         }
 
-        function retryLevel() {
-            closeModal('failModal');
-            clearAll();
-            gameState.timer = getTimerForLevel(); // Base time for a fresh retry
-            gameState.maxTime = gameState.timer;
-            gameState.skillUses.level = 0;
-            if (gameState.level % 5 === 0 || (gameState.level-1) % 5 === 0) {
-                gameState.skillUses.boss = 0;
-            }
-            document.getElementById('timer').textContent = gameState.timer;
-            document.getElementById('progress').style.width = '100%';
-            gameState.enemyCurrentHP = gameState.enemyMaxHP; // Reset HP
-            spawnEnemy(true);
-            startTimer();
-            gameState.started = true;
-        }
-
         function showModeSelect() {
             
         openModal('modeModal');
-            closeModal('successModal');
-            closeModal('failModal');
             closeModal('timeoutModal');
             closeModal('completeModal');
         }
@@ -3220,8 +3085,6 @@
             }
         });
 
-        document.getElementById('nextBtn').onclick = nextLevel;
-        document.getElementById('retryBtn').onclick = retryLevel;
         document.getElementById('restartBtn').onclick = resetGame;
         document.getElementById('completeBtn').onclick = resetGame;
         document.getElementById('replayBtn').onclick = function() {
@@ -3272,30 +3135,6 @@
     
 
         // --- 2D ANIMATION HOOKS ---
-        window.glHit = () => { 
-            const sprite = document.getElementById('monsterSprite');
-            if(sprite) {
-                sprite.classList.remove('hit', 'hit-light', 'dodge', 'defeated');
-                void sprite.offsetWidth;
-                sprite.classList.add('hit-light');
-            }
-        };
-        window.glBlock = () => { 
-            const sprite = document.getElementById('monsterSprite');
-            if(sprite) {
-                sprite.classList.remove('hit', 'hit-light', 'dodge', 'defeated');
-                void sprite.offsetWidth;
-                sprite.classList.add('dodge');
-            }
-        };
-        window.glDeath = () => { 
-            const sprite = document.getElementById('monsterSprite');
-            if(sprite) {
-                sprite.classList.remove('hit', 'hit-light', 'dodge', 'defeated');
-                void sprite.offsetWidth;
-                sprite.classList.add('defeated');
-            }
-        };
         window.glWalk = () => { 
             const sprite = document.getElementById('monsterSprite');
             if(sprite) {
