@@ -706,6 +706,14 @@
 
         #skillBtn:disabled small { color: #9a95ad; }
 
+        .expression-runlabel {
+            font-size: 9.5px;
+            letter-spacing: 0.9px;
+            text-transform: uppercase;
+            color: #6f6b86;
+            line-height: 1;
+        }
+
         .run-score {
             font-size: 17px;
         }
@@ -2470,6 +2478,18 @@
             container.appendChild(formulaRow);
 
             const calc = getIntermediateCalculation();
+
+            // The left-to-right rule is the defining twist and the likeliest source of
+            // a player feeling cheated, and it appeared exactly once — as a red warning
+            // on the menu. This running value already demonstrates it after every step;
+            // label it so it reads as the rule rather than as a preview of the answer.
+            if (selectedNumbers.length > 1 && calc.status !== 'invalid') {
+                const runLabel = document.createElement('span');
+                runLabel.className = 'expression-runlabel';
+                runLabel.textContent = 'running total, left to right';
+                container.appendChild(runLabel);
+            }
+
             const liveTotal = document.createElement('div');
             liveTotal.className = `expression-live-total live-result-${calc.status}`;
             liveTotal.textContent = calc.text;

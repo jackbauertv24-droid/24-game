@@ -1,5 +1,10 @@
 {
-  "dependencies": {
+  "name": "24-game-rpg",
+  "private": true,
+  "scripts": {
+    "test": "node tools/test/regression.js"
+  },
+  "devDependencies": {
     "jimp": "^0.22.10",
     "jsdom": "^30.0.1"
   }
