@@ -1341,10 +1341,8 @@
                     return;
                 }
                 
-                const diffOps = gameState.difficulty === 'easy' ? ['+', '−'] :
-                               gameState.difficulty === 'medium' ? ['+', '−', '×'] :
-                               ['+', '−', '×', '÷'];
-                               
+                const diffOps = getAllowedOps();
+
                 let success = false;
                 let indices = [0, 1, 2, 3];
                 // Try replacing the largest numbers first
@@ -1811,20 +1809,31 @@
             core.style.animation = '';
         }
 
-        function generatePuzzle() {
-            const diff = gameState.difficulty;
-            let numRange, ops;
+        // Single source of truth for a tier. Endless escalates by level, campaign
+        // is fixed per difficulty. Everything that needs to know which operators
+        // are legal — the keypad, the generator, the solvability lookahead, the
+        // Rogue's reroll, the hint and the badge — reads it from here.
+        const TIERS = {
+            easy:   { label: 'EASY',   numRange: [1, 10], ops: ['+', '−'] },
+            medium: { label: 'MEDIUM', numRange: [1, 9],  ops: ['+', '−', '×'] },
+            hard:   { label: 'HARD',   numRange: [1, 13], ops: ['+', '−', '×', '÷'] }
+        };
 
+        function getTier() {
             if (gameState.mode === 'endless') {
-                const level = gameState.level;
-                if (level <= 10) { numRange = [1, 10]; ops = ['+', '−']; }
-                else if (level <= 20) { numRange = [1, 9]; ops = ['+', '−', '×']; }
-                else { numRange = [1, 13]; ops = ['+', '−', '×', '÷']; }
-            } else {
-                if (diff === 'easy') { numRange = [1, 10]; ops = ['+', '−']; }
-                else if (diff === 'medium') { numRange = [1, 9]; ops = ['+', '−', '×']; }
-                else { numRange = [1, 13]; ops = ['+', '−', '×', '÷']; }
+                if (gameState.level <= 10) return TIERS.easy;
+                if (gameState.level <= 20) return TIERS.medium;
+                return TIERS.hard;
             }
+            return TIERS[gameState.difficulty] || TIERS.easy;
+        }
+
+        function getAllowedOps() {
+            return getTier().ops;
+        }
+
+        function generatePuzzle() {
+            const { numRange, ops } = getTier();
 
             let candidates = [];
             
@@ -1955,12 +1964,8 @@
         function renderOperators() {
             const container = document.getElementById('operators');
             container.innerHTML = '';
-            const allowedOps = gameState.mode === 'endless' && gameState.level <= 10 ? ['+', '−'] :
-                              gameState.mode === 'endless' && gameState.level <= 20 ? ['+', '−', '×'] :
-                              gameState.mode === 'campaign' && gameState.difficulty === 'easy' ? ['+', '−'] :
-                              gameState.mode === 'campaign' && gameState.difficulty === 'medium' ? ['+', '−', '×'] :
-                              ['+', '−', '×', '÷'];
-            
+            const allowedOps = getAllowedOps();
+
             OPERATORS.forEach(op => {
                 const btn = document.createElement('button');
                 btn.className = `operator-btn${!allowedOps.includes(op) ? ' disabled' : ''}`;
@@ -2001,7 +2006,9 @@
                 if (calc.status === 'evaluated' || calc.status === 'target' || calc.status === 'mismatch' || calc.status === 'single') {
                     const unused = currentNumbers.filter((n, i) => !selectedNumbers.includes(i)).map(n => n.value);
                     unused.push(calc.value);
-                    const isSolvable = findSolutions(unused).length > 0;
+                    // Must use this tier's operators, not all four — otherwise the
+                    // monster flinches encouragingly at positions that are already dead.
+                    const isSolvable = findSolutions(unused, getAllowedOps()).length > 0;
                     
                     const sprite = document.getElementById('monsterSprite');
                     if (sprite) {
@@ -2360,14 +2367,9 @@
             updateStats();
             
             const diffEl = document.getElementById('difficulty');
-            if (gameState.mode === 'campaign') {
-                diffEl.textContent = gameState.difficulty.toUpperCase();
-            } else if (gameState.mode === 'endless') {
-                const tiers = ['EASY', 'EASY', 'MED', 'MED', 'HARD'];
-                diffEl.textContent = tiers[Math.min(4, Math.floor(gameState.level / 10))];
-            } else {
-                diffEl.textContent = 'PRACTICE';
-            }
+            // Read the badge off the same tier the puzzles are generated from,
+            // so it can never disagree with the keypad.
+            diffEl.textContent = gameState.isPractice ? 'PRACTICE' : getTier().label;
         }
 
         function startGame() {
@@ -2398,10 +2400,7 @@
                 currentNumbers = puzzle.nums.map(n => ({ value: n, used: false }));
                 
                 // Generate hint dynamically based on difficulty
-                const diffOps = gameState.difficulty === 'easy' ? ['+', '−'] :
-                               gameState.difficulty === 'medium' ? ['+', '−', '×'] :
-                               ['+', '−', '×', '÷'];
-                const solutions = findSolutions(puzzle.nums, diffOps);
+                const solutions = findSolutions(puzzle.nums, getAllowedOps());
                 currentSolution = solutions.length > 0 ? solutions[0] : "Try different combinations";
             } else {
                 const puzzle = generatePuzzle();
@@ -2736,11 +2735,7 @@
         loadStats();
         updateStats();
         function initCampaignPuzzles() {
-            const difficulties = [
-                { name: 'easy', numRange: [1, 10], ops: ['+', '−'] },
-                { name: 'medium', numRange: [1, 9], ops: ['+', '−', '×'] },
-                { name: 'hard', numRange: [1, 13], ops: ['+', '−', '×', '÷'] }
-            ];
+            const difficulties = Object.entries(TIERS).map(([name, tier]) => ({ name, ...tier }));
 
             difficulties.forEach(diff => {
                 let candidates = [];
