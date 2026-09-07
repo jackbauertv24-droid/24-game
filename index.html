@@ -1813,10 +1813,15 @@
         // is fixed per difficulty. Everything that needs to know which operators
         // are legal — the keypad, the generator, the solvability lookahead, the
         // Rogue's reroll, the hint and the badge — reads it from here.
+        // `fallback` is a board solvable with that tier's own operators, used only
+        // if random generation somehow comes up empty. Easy is the one that matters:
+        // only ~8% of random 1-10 boards are reachable with + and − alone, so the
+        // attempt budget really can run out — and the old fallback of [1,2,3,4] was
+        // impossible there (1+2+3+4 = 10), costing the player 10s per submission.
         const TIERS = {
-            easy:   { label: 'EASY',   numRange: [1, 10], ops: ['+', '−'] },
-            medium: { label: 'MEDIUM', numRange: [1, 9],  ops: ['+', '−', '×'] },
-            hard:   { label: 'HARD',   numRange: [1, 13], ops: ['+', '−', '×', '÷'] }
+            easy:   { label: 'EASY',   numRange: [1, 10], ops: ['+', '−'],           fallback: [10, 10, 9, 5] },
+            medium: { label: 'MEDIUM', numRange: [1, 9],  ops: ['+', '−', '×'],      fallback: [8, 3, 1, 1] },
+            hard:   { label: 'HARD',   numRange: [1, 13], ops: ['+', '−', '×', '÷'], fallback: [1, 2, 3, 4] }
         };
 
         function getTier() {
@@ -1837,7 +1842,9 @@
 
             let candidates = [];
             
-            for (let attempt = 0; attempt < 50 && candidates.length < 3; attempt++) {
+            // Solvable boards are far rarer in the low tiers (~8% for Easy vs ~80%
+            // for Hard), so give every tier enough attempts to actually find some.
+            for (let attempt = 0; attempt < 400 && candidates.length < 3; attempt++) {
                 const nums = [];
                 for (let i = 0; i < 4; i++) {
                     nums.push(Math.floor(Math.random() * (numRange[1] - numRange[0] + 1)) + numRange[0]);
@@ -1858,9 +1865,13 @@
                 return { numbers: currentNumbers, solution: chosen.solution };
             }
             
-            // Fallback: guaranteed solvable puzzle
-            currentNumbers = [1, 2, 3, 4].map(n => ({ value: n, used: false }));
-            return { numbers: currentNumbers, solution: "1×2×3×4 = 24" };
+            // Fallback: a board this tier can actually solve, with its solution
+            // derived from the tier's own operators so the hint never shows a key
+            // the player has no way to press.
+            const tier = getTier();
+            currentNumbers = tier.fallback.map(n => ({ value: n, used: false }));
+            const fallbackSolutions = findSolutions(tier.fallback, ops);
+            return { numbers: currentNumbers, solution: fallbackSolutions[0] || null };
         }
 
         function findSolutions(nums, allowedOps = ['+', '−', '×', '÷']) {
