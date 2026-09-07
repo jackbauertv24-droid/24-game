@@ -2899,16 +2899,38 @@
             setTimeout(() => div.remove(), 1000);
         };
         
-        // Preload assets to prevent blank flickering
-        setTimeout(() => {
-            const images = [];
-            ENEMIES.forEach(e => {
-                if (e.url) { const img = new Image(); img.src = e.url; images.push(img); }
-            });
-            ['class_warrior.jpg', 'class_rogue.jpg', 'class_wizard.jpg', 'class_paladin.jpg', 'bg_boss.jpg', 'bg_dungeon.jpg'].forEach(url => {
-                const img = new Image(); img.src = 'assets/' + url; images.push(img);
-            });
-        }, 50);
+        // Preload assets to prevent blank flickering.
+        //
+        // This used to walk the whole ENEMIES array 50ms after load — all 59 entries,
+        // including the 35 flagged hidden:true that can neither spawn in combat nor
+        // appear in the bestiary. At ~786 KB per sheet that was ~46 MB fetched on
+        // every visit, most of it for enemies the player can never see.
+        //
+        // Now: the two arena backgrounds go out immediately (one of them is on screen
+        // within a second), and the reachable sprite sheets trickle in one at a time
+        // while the browser is idle, so they never compete with what is on screen.
+        (function preloadAssets() {
+            const eager = ['assets/bg_dungeon.jpg', 'assets/bg_boss.jpg'];
+            eager.forEach(url => { const img = new Image(); img.src = url; });
+
+            // Several enemies share a sheet (the golem variants); fetch each once.
+            const queue = [...new Set(
+                ENEMIES.filter(e => !e.hidden && e.url).map(e => e.url)
+            )].filter(url => !eager.includes(url));
+
+            const idle = window.requestIdleCallback || (fn => setTimeout(fn, 200));
+            const preloaded = [];
+
+            function next() {
+                if (!queue.length) return;
+                const img = new Image();
+                img.src = queue.shift();
+                preloaded.push(img);
+                // Chain on completion so we hold at most one extra request in flight.
+                img.onload = img.onerror = () => idle(next);
+            }
+            idle(next);
+        })();
 
         // --- END 2D ANIMATION HOOKS ---
     
