@@ -393,12 +393,42 @@
             text-shadow: 0 0 20px var(--primary);
         }
 
+        /* Kept for the aria label only — cards in the equation now render .selected.
+           pointer-events stay active so tapping a card again undoes it. */
         .number-card.used {
-            opacity: 0.3;
-            /* pointer-events intentionally left active to allow Undo via tap */
+            opacity: 0.35;
             transform: translateZ(0px) translateY(8px) scale(0.97);
             box-shadow: 0 1px 0 #0d1a24, 0 2px 5px rgba(0,0,0,0.4);
             filter: grayscale(1);
+        }
+
+        /* Visible, cancellable countdown to the automatic submission. */
+        .submit-sweep {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 3px;
+            width: 0;
+            border-radius: 0 0 14px 14px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            opacity: 0;
+        }
+
+        .submit-sweep.running {
+            animation: submitSweep var(--sweep-ms, 1100ms) linear forwards;
+        }
+
+        @keyframes submitSweep {
+            from { width: 0;    opacity: 1; }
+            to   { width: 100%; opacity: 1; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .submit-sweep.running {
+                animation: none;
+                width: 100%;
+                opacity: 1;
+            }
         }
 
         .expression-area {
@@ -411,8 +441,11 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 0 15px rgba(0,240,255,0.05);
-            cursor: pointer;
             backdrop-filter: blur(4px);
+            /* anchors .submit-sweep; also no longer clickable as a whole, so no
+               pointer cursor — a stray tap used to wipe the entire equation */
+            position: relative;
+            overflow: hidden;
         }
 
         .expression {
@@ -1135,12 +1168,11 @@
                     </div>
                 </div>
 
-                <div class="expression-area" id="expressionArea" onclick="clearAll()" style="cursor:pointer;" title="Tap to clear" aria-label="Equation. Tap a token to edit that step.">
-                    
-                
-                <div class="expression" id="expression">
-                        <span class="expression-placeholder">Tap here to clear board</span>
+                <div class="expression-area" id="expressionArea" aria-label="Equation. Tap a token to remove it and everything after it.">
+                    <div class="expression" id="expression">
+                        <span class="expression-placeholder">Tap a card below to begin</span>
                     </div>
+                    <div class="submit-sweep" id="submitSweep" aria-hidden="true"></div>
                 </div>
 
                 <div class="hint-text" id="hint"></div>
@@ -1705,15 +1737,31 @@
                 clearTimeout(autoSubmitTimer);
                 autoSubmitTimer = null;
             }
+            const sweep = document.getElementById('submitSweep');
+            if (sweep) sweep.classList.remove('running');
         }
+
+        // A wrong answer costs 10 seconds, and this used to fire 350ms after the
+        // fourth card with no confirmation and no way back — a mis-tap was graded
+        // before the player could look at what they had built. The delay is now long
+        // enough to catch, visibly counting down, and any edit cancels it. Enter
+        // still submits instantly, so nobody fast is slowed down.
+        const AUTO_SUBMIT_MS = 1100;
 
         function scheduleAutoSubmit() {
             cancelAutoSubmit();
             if (!gameState.started || selectedNumbers.length !== 4 || selectedOperators.length !== 3) return;
+            const sweep = document.getElementById('submitSweep');
+            if (sweep) {
+                sweep.classList.remove('running');
+                void sweep.offsetWidth;
+                sweep.style.setProperty('--sweep-ms', AUTO_SUBMIT_MS + 'ms');
+                sweep.classList.add('running');
+            }
             autoSubmitTimer = setTimeout(() => {
                 autoSubmitTimer = null;
                 submit();
-            }, 350);
+            }, AUTO_SUBMIT_MS);
         }
 
         function loadStats() {
@@ -2129,7 +2177,11 @@
                 card.type = 'button';
                 // The Rogue's Sleight of Hand looks the swapped card up by this id.
                 card.id = 'number-' + idx;
-                card.className = `number-card${num.used ? ' used' : ''}`;
+                // A card in the current equation is in play, not out of it. This used
+                // to apply .used — opacity .3, grayscale, pressed down — so the
+                // numbers you were actively working with were the ones drawn as dead,
+                // while the lit .selected state sat in the stylesheet unused.
+                card.className = `number-card${num.used ? ' selected' : ''}`;
                 card.textContent = num.value;
                 card.setAttribute('role', 'button');
                 card.setAttribute('tabindex', '0');
@@ -2300,13 +2352,13 @@
             if (selectedNumbers.length === 0) {
                 const placeholder = document.createElement('span');
                 placeholder.className = 'expression-placeholder';
-                placeholder.textContent = 'Tap here to clear board';
+                placeholder.textContent = 'Tap a card below to begin';
                 formulaRow.appendChild(placeholder);
                 container.appendChild(formulaRow);
 
                 const cue = document.createElement('span');
                 cue.className = 'expression-cue';
-                cue.textContent = 'Tap any card below to begin';
+                cue.textContent = 'Every step is worked out left to right';
                 container.appendChild(cue);
                 return;
             }
@@ -2351,7 +2403,9 @@
             const cue = document.createElement('span');
             cue.className = 'expression-cue';
             cue.textContent = selectedNumbers.length === 4
-                ? (calc.status === 'invalid' ? 'Invalid operation!' : (calc.value === 24 ? 'Complete — submitting…' : 'Complete — checking…'))
+                ? (calc.status === 'invalid'
+                    ? 'Not an exact division — undo to fix'
+                    : 'Submitting… undo or tap a step to stop')
                 : selectedNumbers.length === selectedOperators.length
                     ? 'Next: choose a card'
                     : 'Next: choose an operation';
