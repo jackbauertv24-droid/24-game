@@ -47,15 +47,23 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 100dvh;
+            /* Centering a column whose height changes means every content change
+               moves the whole UI by half the delta, in both directions — that is the
+               flicker. Pin it to the top and let .monster-area absorb the slack. */
+            justify-content: flex-start;
+            /* dvh tracks the mobile browser chrome as it hides and shows, sliding the
+               entire layout up and down while you play. svh is the stable one. */
+            min-height: 100svh;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
         .game-container {
             width: 100%;
             max-width: 480px;
-            min-height: 100%;
+            /* Filling the body is what lets .monster-area's flex: 1 swallow every
+               height change below it without anything else moving. Asking for another
+               100svh here would double-count the body's safe-area padding. */
+            flex: 1 1 auto;
             display: flex;
             flex-direction: column;
             padding: 16px;
@@ -120,11 +128,33 @@
         }
 
         .display-zone {
+            position: relative; /* anchors the hint overlay */
             display: flex;
             flex-direction: column;
             gap: 10px;
             width: 100%;
         }
+
+        /* Overlaid, not inserted: toggling display on the boss label used to move
+           the sprite and health bar every time a boss spawned. */
+        .boss-label {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff5555;
+            font-weight: bold;
+            text-align: center;
+            font-size: 20px;
+            text-shadow: 0 0 10px #ff0000;
+            letter-spacing: 2px;
+            z-index: 12;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .boss-label.visible { opacity: 1; }
 
         .monster-area {
             display: flex;
@@ -324,7 +354,9 @@
             border: 2px solid var(--card-border);
             box-shadow: 0 6px 0 #151520, 0 15px 20px rgba(0,0,0,0.6), inset 0 2px 5px rgba(255,255,255,0.1);
             transform: translateZ(10px);
-            transition: all 0.15s ease;
+            /* 'all' animated width/height/font-size too, so any change smeared into
+               a resize. Only the decorative properties transition. */
+            transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
         }
 
         .number-card::before {
@@ -337,8 +369,7 @@
         }
 
         .number-card:focus-visible {
-            transform: translateZ(15px) translateY(-4px);
-            box-shadow: 0 8px 0 #151520, 0 20px 25px rgba(0,0,0,0.7), inset 0 2px 5px rgba(255,255,255,0.15);
+            box-shadow: 0 6px 0 #151520, 0 15px 20px rgba(0,0,0,0.7), inset 0 2px 5px rgba(255,255,255,0.15);
             color: #fff;
             text-shadow: 0 0 15px var(--primary);
             border-color: rgba(0, 240, 255, 0.5);
@@ -349,8 +380,10 @@
             outline-offset: 3px;
         }
 
+        /* A press should still travel — but along Y only, at a constant depth, so
+           the button moves without the whole card changing size. */
         .number-card:active, .number-card.pressing, .operator-btn:active, .operator-btn.pressing {
-            transform: translateZ(2px) translateY(4px);
+            transform: translateZ(10px) translateY(4px);
             box-shadow: 0 2px 0 #151520, 0 5px 10px rgba(0,0,0,0.5);
             text-shadow: 0 0 5px var(--primary);
         }
@@ -372,9 +405,10 @@
             .number-card { width: 60px; height: 55px; font-size: 22px; }
             .operator-btn { width: 46px; height: 46px; font-size: 20px; }
             .action-btn { padding: 8px 4px; font-size: 12px; }
-            .expression-area { min-height: 45px; padding: 4px 8px; }
-            .expression-formula { font-size: 15px; }
-            .expression-live-total { font-size: 20px; min-height: 22px; }
+            .expression-area { min-height: 98px; padding: 4px 8px; }
+            .expression-formula { font-size: 15px; height: 26px; flex: 0 0 26px; }
+            .expression-live-total { font-size: 20px; height: 26px; flex: 0 0 26px; }
+            .expression-cue { height: 15px; flex: 0 0 15px; }
             #bossLabel { font-size: 14px; margin-bottom: 0px; }
             .controls { gap: 4px; margin-top: 2px; }
             .gamepad-3d-wrapper { transform-style: flat; perspective: none; }
@@ -403,7 +437,7 @@
             .monster-health-bar-container { margin: 4px auto 8px auto; }
             .gamepad { gap: 8px; }
             .number-card { height: 72px; }
-            .expression-area { min-height: 74px; padding: 10px 16px; }
+            .expression-area { min-height: 126px; padding: 10px 16px; }
             .action-btn { padding: 12px; }
             .key-hint { margin-top: 5px; }
         }
@@ -411,15 +445,20 @@
         @media (min-width: 481px) and (max-height: 700px) {
             .monster-sprite { width: 160px; height: 160px; }
             .number-card { height: 62px; font-size: 28px; }
-            .expression-area { min-height: 62px; }
+            .expression-area { min-height: 116px; }
+            .expression-formula { height: 28px; flex: 0 0 28px; font-size: 18px; }
+            .expression-live-total { height: 28px; flex: 0 0 28px; font-size: 24px; }
             .key-hint { display: none; }
         }
 
+        /* Under .gamepad's perspective: 1000px, changing translateZ rescales the
+           element — 10px to 20px and back on every tap is the card visibly zooming.
+           Selection is signalled with colour and glow at a constant depth instead. */
         .number-card.selected {
             border-color: var(--primary);
             background: linear-gradient(145deg, #1f3f4a 0%, #152535 100%);
-            transform: translateZ(20px) translateY(-6px);
-            box-shadow: 0 10px 0 #0d1a24, 0 25px 35px rgba(0,240,255,0.3), 0 0 15px rgba(0,240,255,0.4), inset 0 2px 5px rgba(255,255,255,0.2);
+            transform: translateZ(10px);
+            box-shadow: 0 6px 0 #0d1a24, 0 15px 20px rgba(0,0,0,0.6), 0 0 16px rgba(0,240,255,0.45), inset 0 2px 5px rgba(255,255,255,0.2);
             color: #fff;
             text-shadow: 0 0 20px var(--primary);
         }
@@ -430,7 +469,13 @@
             border: 2px solid var(--card-border);
             border-radius: 16px;
             padding: 14px 18px;
-            min-height: 94px;
+            /* The panel holds four rows — formula, the left-to-right label, the
+               running total, the cue. min-height: 94px fitted only three, so placing
+               the second number grew the panel and shoved the arena above it. Every
+               row now has a fixed height and is always present, so the content height
+               is constant and this floor is never exceeded.
+               32 + 11 + 34 + 16 rows + 3x4 gaps + 2x14 padding = 133 */
+            min-height: 134px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -438,7 +483,6 @@
             backdrop-filter: blur(4px);
             /* no longer clickable as a whole, so no pointer cursor — a stray tap
                used to wipe the entire equation */
-            overflow: hidden;
         }
 
         .expression {
@@ -453,15 +497,26 @@
         .expression-formula {
             width: 100%;
             display: flex;
-            flex-wrap: wrap;
+            /* A long equation used to wrap onto a second line, adding ~26px and
+               moving everything. It scrolls in place instead. */
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
             align-items: center;
+            /* 'safe' keeps a long equation reachable: centred flex content that
+               overflows is otherwise clipped past the start edge with no way to
+               scroll back to it. Browsers without it fall back to plain center. */
             justify-content: center;
+            justify-content: safe center;
             gap: 4px;
             font-size: 20px;
             font-weight: 600;
             color: var(--light);
-            min-height: 32px;
+            height: 32px;
+            flex: 0 0 32px;
         }
+
+        .expression-formula::-webkit-scrollbar { display: none; }
 
         .expression-token {
             min-height: 34px;
@@ -505,7 +560,8 @@
         .expression-live-total {
             font-size: 30px;
             font-weight: 700;
-            min-height: 36px;
+            height: 34px;
+            flex: 0 0 34px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -550,7 +606,18 @@
             font-size: 12px;
             font-weight: 400;
             text-align: center;
+            /* one line, always — a longer cue used to wrap and add a row */
+            height: 16px;
+            flex: 0 0 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
+
+        /* Hidden rows keep their box so nothing reflows when they appear. */
+        .expression-runlabel.is-empty,
+        .expression-live-total.is-empty { visibility: hidden; }
 
         .operators-row {
             display: flex;
@@ -580,20 +647,20 @@
         }
 
         .operator-btn:focus-visible {
-            transform: translateZ(15px) translateY(-3px);
+            transform: translateZ(10px) translateY(-3px);
             border-color: rgba(179,136,255,0.5);
             box-shadow: 0 7px 0 #0f0b15, 0 15px 20px rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.1);
         }
         @media (hover: hover) {
             .operator-btn:hover {
-                transform: translateZ(15px) translateY(-3px);
+                transform: translateZ(10px) translateY(-3px);
                 border-color: rgba(179,136,255,0.5);
                 box-shadow: 0 7px 0 #0f0b15, 0 15px 20px rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.1);
             }
         }
 
         .operator-btn:active {
-            transform: translateZ(5px) translateY(2px) scale(0.96);
+            transform: translateZ(10px) translateY(2px) scale(0.96);
             box-shadow: 0 2px 0 #0f0b15, 0 4px 8px rgba(0,0,0,0.4);
         }
 
@@ -618,7 +685,9 @@
             font-weight: 700;
             font-family: var(--font-ui);
             cursor: pointer;
-            transition: all 0.2s ease;
+            /* 'all' animated padding and font-size too, smearing label changes on the
+               skill button into a resize. */
+            transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             background: linear-gradient(145deg, #2a2a35 0%, #1a1a24 100%);
             color: var(--light);
@@ -630,7 +699,7 @@
         }
 
         .action-btn:active {
-            transform: translateZ(5px) scale(0.98);
+            transform: translateZ(10px) scale(0.98);
         }
 
         .action-btn:focus-visible {
@@ -669,6 +738,8 @@
         #skillBtn:disabled small { color: #9a95ad; }
 
         .expression-runlabel {
+            height: 11px;
+            flex: 0 0 11px;
             font-size: 9.5px;
             letter-spacing: 0.9px;
             text-transform: uppercase;
@@ -903,12 +974,21 @@
             background: rgba(255, 215, 0, 0.1);
             border: 1px solid rgba(255, 215, 0, 0.3);
             border-radius: 8px;
-            margin-top: 8px;
-            display: none;
+            /* Overlaid on the arena rather than inserted into the column: toggling
+               display used to push everything below it down by ~40px. */
+            position: absolute;
+            left: 50%;
+            bottom: 8px;
+            transform: translateX(-50%);
+            width: calc(100% - 24px);
+            z-index: 12;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
         }
 
         .hint-text.visible {
-            display: block;
+            opacity: 1;
         }
 
         /* The game's own framing is that time is the player's health, but time got a
@@ -1136,7 +1216,7 @@
                 <div class="monster-area" id="monsterArea">
                     <div class="monster-sprite" id="monsterSprite" ></div>
                     <div id="combatEffect" class="combat-effect"></div>
-                    <div id="bossLabel" style="display: none; color: #ff5555; font-weight: bold; text-align: center; font-size: 20px; text-shadow: 0 0 10px #ff0000; letter-spacing: 2px; margin-bottom: 5px;">⚠️ BOSS ⚠️</div>
+                    <div id="bossLabel" class="boss-label">⚠️ BOSS ⚠️</div>
                     <div class="monster-health-bar-container" style="position: relative;">
                         <div class="monster-health-bar" id="monsterHealth"></div>
                         <div id="hpText" style="position: absolute; width: 100%; text-align: center; color: white; font-weight: bold; font-size: 14px; top: 1px; text-shadow: 1px 1px 2px #000;">24/24</div>
@@ -2404,6 +2484,18 @@
                 formulaRow.appendChild(placeholder);
                 container.appendChild(formulaRow);
 
+                // The empty state still emits the label and total rows, hidden, so the
+                // panel holds exactly the same shape as when an equation is in it.
+                const emptyLabel = document.createElement('span');
+                emptyLabel.className = 'expression-runlabel is-empty';
+                emptyLabel.textContent = 'running total, left to right';
+                container.appendChild(emptyLabel);
+
+                const emptyTotal = document.createElement('div');
+                emptyTotal.className = 'expression-live-total is-empty';
+                emptyTotal.textContent = '0';
+                container.appendChild(emptyTotal);
+
                 const cue = document.createElement('span');
                 cue.className = 'expression-cue';
                 cue.textContent = 'Every step is worked out left to right';
@@ -2445,9 +2537,12 @@
             // a player feeling cheated, and it appeared exactly once — as a red warning
             // on the menu. This running value already demonstrates it after every step;
             // label it so it reads as the rule rather than as a preview of the answer.
-            if (selectedNumbers.length > 1 && calc.status !== 'invalid') {
+            {
+                const showLabel = selectedNumbers.length > 1 && calc.status !== 'invalid';
                 const runLabel = document.createElement('span');
-                runLabel.className = 'expression-runlabel';
+                // Always emitted, hidden when it does not apply — appearing and
+                // disappearing was resizing the panel and shoving the arena.
+                runLabel.className = 'expression-runlabel' + (showLabel ? '' : ' is-empty');
                 runLabel.textContent = 'running total, left to right';
                 container.appendChild(runLabel);
             }
@@ -2867,7 +2962,7 @@
             
             const bossLabel = document.getElementById('bossLabel');
             if (bossLabel) {
-                bossLabel.style.display = isBoss && !gameState.isPractice ? 'block' : 'none';
+                bossLabel.classList.toggle('visible', isBoss && !gameState.isPractice);
             }
             
             const isActuallyBoss = isBoss && !gameState.isPractice;

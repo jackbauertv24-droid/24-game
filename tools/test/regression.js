@@ -90,6 +90,34 @@ setTimeout(() => {
  key('Escape');    ok('X2  Escape clears', expr()==='');
  ok('X2  Undo and Clear buttons exist', !!doc.getElementById('undoBtn') && !!doc.getElementById('clearBtn'));
 
+ // --- layout stability: nothing may change the page's shape mid-puzzle ---
+ w.eval('gameState.started=true; currentNumbers=[{value:13,used:false},{value:12,used:false},{value:11,used:false},{value:10,used:false}]; renderNumbers(); clearAll();');
+ const shape = () => [...doc.getElementById('expression').children]
+   .map(e => e.className.split(' ')[0]).join('|');
+ const shapes = [];
+ shapes.push(shape());
+ w.eval('selectNumber(0);');                                   shapes.push(shape());
+ w.eval('selectOperator("+");');                               shapes.push(shape());
+ w.eval('selectNumber(1);');                                   shapes.push(shape());
+ w.eval('selectOperator("−");selectNumber(2);');               shapes.push(shape());
+ w.eval('selectOperator("+");selectNumber(3);');               shapes.push(shape());
+ ok('SHIFT  the equation panel keeps the same rows at every step',
+    new Set(shapes).size === 1, shapes[0]);
+ ok('SHIFT  every panel row has a fixed height',
+    /\.expression-formula \{[^}]*flex: 0 0/.test(src) && /\.expression-live-total \{[^}]*flex: 0 0/.test(src)
+    && /\.expression-runlabel \{[^}]*flex: 0 0/.test(src) && /\.expression-cue \{[^}]*flex: 0 0/.test(src));
+ ok('SHIFT  a long equation scrolls instead of wrapping to a new line',
+    /\.expression-formula \{[^}]*flex-wrap: nowrap/.test(src));
+ ok('SHIFT  hint and boss label overlay rather than toggling display',
+    !/bossLabel\.style\.display/.test(src) && /\.hint-text\.visible \{\s*opacity: 1/.test(src));
+ ok('SHIFT  layout is not vertically centred on a variable-height column',
+    /justify-content: flex-start/.test(src));
+ ok('SHIFT  viewport unit is svh, not the chrome-tracking dvh', !/100dvh/.test(src) && /100svh/.test(src));
+ ok('SHIFT  card states do not change translateZ (perspective would rescale them)',
+    !/\.number-card\.selected \{[^}]*translateZ\(20px\)/.test(src)
+    && !/translateZ\(2px\)/.test(src) && !/translateZ\(15px\)/.test(src));
+ ok('SHIFT  cards do not transition "all"', !/\.number-card \{[^}]*transition: all/.test(src));
+
  // --- pace: no pre-submit pause ---
  w.eval('clearAll(); selectNumber(0);selectOperator("+");selectNumber(1);selectOperator("+");selectNumber(2);selectOperator("+");selectNumber(3);');
  ok('PACE  auto-submit stays snappy and shows no countdown',
