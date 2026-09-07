@@ -1098,6 +1098,9 @@
     </style>
 </head>
 <body>
+
+    <div id="liveStatus" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="liveAlert" class="sr-only" role="alert" aria-live="assertive" aria-atomic="true"></div>
     
     
     <div class="game-container">
@@ -1166,9 +1169,9 @@
         </div>
     </div>
 
-    <div class="modal" id="galleryModal">
+    <div class="modal" id="galleryModal" role="dialog" aria-modal="true" aria-labelledby="galTitle">
         <div class="modal-content" style="max-width: 400px; padding: 20px;">
-            <h2 style="margin-bottom: 10px; font-size: 22px;">📖 Monster Bestiary</h2>
+            <h2 id="galTitle" style="margin-bottom: 10px; font-size: 22px;">📖 Monster Bestiary</h2>
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0;">
                 <button id="galPrevBtn" style="background: transparent; border: none; color: white; font-size: 40px; cursor: pointer; padding: 5px; line-height: 1; display: flex; align-items: center; outline: none; -webkit-tap-highlight-color: transparent;">◀</button>
                 <div style="width: 250px; height: 250px; position: relative; background: url('assets/bg_dungeon.jpg') center/cover; border-radius: 12px; overflow: hidden; border: 2px solid var(--card-border);">
@@ -1190,13 +1193,14 @@
     <style>
         .class-card { transition: all 0.2s; }
         .class-card:hover { border-color: #fff !important; background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
         .floating-text { position: absolute; font-weight: bold; font-size: 24px; pointer-events: none; animation: floatUp 1.2s ease-out forwards; z-index: 100; text-shadow: 0 2px 4px rgba(0,0,0,0.8); white-space: nowrap; }
         @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -100px); } }
     </style>
     
-    <div class="modal" id="difficultyModal">
+    <div class="modal" id="difficultyModal" role="dialog" aria-modal="true" aria-labelledby="diffTitle">
         <div class="modal-content" style="max-width: 400px;">
-            <h2>⚔️ Campaign Difficulty</h2>
+            <h2 id="diffTitle">⚔️ Campaign Difficulty</h2>
             <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
                 <button class="mode-btn" onclick="selectDifficulty('easy')" style="text-align: left; background: rgba(85, 255, 85, 0.1); border-color: #55ff55;">
                     🟢 Easy
@@ -1213,9 +1217,9 @@
             </div>
         </div>
     </div>
-    <div class="modal" id="classModal">
+    <div class="modal" id="classModal" role="dialog" aria-modal="true" aria-labelledby="classTitle">
         <div class="modal-content" style="max-width: 600px;">
-            <h2>Select Your Class</h2>
+            <h2 id="classTitle">Select Your Class</h2>
             <div class="class-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
                 <div class="class-card" onclick="startGameWithClass('warrior')" style="border: 2px solid #555; padding: 15px; border-radius: 8px; cursor: pointer;">
                     <img src="assets/class_warrior.jpg" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 2px solid #444; box-shadow: 0 4px 8px rgba(0,0,0,0.5);" alt="Warrior">
@@ -1242,13 +1246,13 @@
                     <p style="font-size: 12px; color: #aaa;"><strong>Active:</strong> Deal 24 Dmg (Once per Boss)</p>
                 </div>
             </div>
-            <button class="modal-btn" onclick="document.getElementById('classModal').classList.remove('active'); document.getElementById('modeModal').classList.add('active');">Back</button>
+            <button class="modal-btn" onclick="closeModal('classModal'); openModal('modeModal');">Back</button>
         </div>
     </div>
 
-    <div class="modal" id="modeModal">
+    <div class="modal" id="modeModal" role="dialog" aria-modal="true" aria-labelledby="modeTitle">
         <div class="modal-content">
-            <h2>🎮 24 Game</h2>
+            <h2 id="modeTitle">🎮 24 Game</h2>
                         <div class="stats-panel open" id="statsPanel" aria-label="Game statistics">
                 <div class="stat-card"><strong id="statSolved">0</strong><span>Solved</span></div>
                 <div class="stat-card"><strong id="statPlayed">0</strong><span>Played</span></div>
@@ -1285,36 +1289,36 @@
         </div>
     </div>
 
-    <div class="modal" id="successModal">
+    <div class="modal" id="successModal" role="dialog" aria-modal="true" aria-labelledby="successTitle">
         <div class="modal-content">
             <div class="celebration-scene" id="celebrationScene" aria-hidden="true">
                 <div class="celebration-core">★</div>
             </div>
-            <h2>🎉 Correct!</h2>
+            <h2 id="successTitle">🎉 Correct!</h2>
             <p id="successMsg">+100 points</p>
             <button class="modal-btn primary" id="nextBtn">Next Level →</button>
         </div>
     </div>
 
-    <div class="modal" id="failModal">
+    <div class="modal" id="failModal" role="dialog" aria-modal="true" aria-labelledby="failTitle">
         <div class="modal-content">
-            <h2>😢 Not 24</h2>
+            <h2 id="failTitle">😢 Not 24</h2>
             <p>Your expression equals <span id="wrongResult">0</span></p>
             <button class="modal-btn primary" id="retryBtn">Try Again</button>
         </div>
     </div>
 
-    <div class="modal" id="timeoutModal">
+    <div class="modal" id="timeoutModal" role="dialog" aria-modal="true" aria-labelledby="timeoutTitle">
         <div class="modal-content">
-            <h2>⏰ Time's Up!</h2>
+            <h2 id="timeoutTitle">⏰ Time's Up!</h2>
             <p>Final Score: <span id="finalScore">0</span></p>
             <button class="modal-btn primary" id="restartBtn">Play Again</button>
         </div>
     </div>
 
-    <div class="modal" id="completeModal">
+    <div class="modal" id="completeModal" role="dialog" aria-modal="true" aria-labelledby="completeTitle">
         <div class="modal-content">
-            <h2>🏆 Completed!</h2>
+            <h2 id="completeTitle">🏆 Completed!</h2>
             <p>You've completed all puzzles in this difficulty!</p>
             <button class="modal-btn primary" id="replayBtn">Play This Difficulty Again</button>
             <button class="modal-btn" id="completeBtn">Back to Menu</button>
@@ -1324,7 +1328,7 @@
     <script>
 
         window.startGameWithClass = function(cls) {
-            document.getElementById('classModal').classList.remove('active');
+            closeModal('classModal');
             window.pendingClass = cls;
             gameState.playerClass = cls;
             
@@ -1478,6 +1482,70 @@
             }
         };
 
+        // --- Modals as real dialogs -------------------------------------------
+        // These were plain divs toggled with a class: no role, no focus management,
+        // no Escape, and the game board stayed in the tab order behind the overlay,
+        // so keyboard focus wandered into a board the player could not see.
+        let lastFocusedBeforeModal = null;
+
+        function focusableIn(el) {
+            return [...el.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+                .filter(node => !node.disabled && node.offsetParent !== null || node.tagName === 'BUTTON' && !node.disabled);
+        }
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (!modal || modal.classList.contains('active')) return;
+            if (!document.querySelector('.modal.active')) {
+                lastFocusedBeforeModal = document.activeElement;
+            }
+            modal.classList.add('active');
+            const board = document.querySelector('.game-container');
+            if (board) board.inert = true;
+            const first = focusableIn(modal)[0];
+            if (first) first.focus();
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.classList.remove('active');
+            if (!document.querySelector('.modal.active')) {
+                const board = document.querySelector('.game-container');
+                if (board) board.inert = false;
+                if (lastFocusedBeforeModal && lastFocusedBeforeModal.isConnected) {
+                    lastFocusedBeforeModal.focus();
+                }
+                lastFocusedBeforeModal = null;
+            }
+        }
+
+        // Keep Tab inside the open dialog.
+        document.addEventListener('keydown', event => {
+            if (event.key !== 'Tab') return;
+            const modal = document.querySelector('.modal.active');
+            if (!modal) return;
+            const items = focusableIn(modal);
+            if (!items.length) return;
+            const first = items[0], last = items[items.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault(); last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault(); first.focus();
+            }
+        });
+
+        // --- Announcements ----------------------------------------------------
+        // Timer, score, streak, HP and the running total all changed silently —
+        // there was no aria-live region anywhere, so a screen-reader user received
+        // none of the feedback that makes up the game.
+        function announce(message, assertive) {
+            const region = document.getElementById(assertive ? 'liveAlert' : 'liveStatus');
+            if (!region) return;
+            region.textContent = '';
+            // Re-setting on the next frame forces a re-announcement of repeat text.
+            requestAnimationFrame(() => { region.textContent = message; });
+        }
+
         function showFloatingText(text, color, targetId) {
             const target = document.getElementById(targetId) || document.getElementById('monsterArea');
             if (!target) return;
@@ -1499,6 +1567,7 @@
             const color = amt > 0 ? '#55ff55' : '#ff5555';
             const sign = amt > 0 ? '+' : '';
             showFloatingText(sign + amt + 's', color, 'timer');
+            announce(`${amt > 0 ? 'Gained' : 'Lost'} ${Math.abs(amt)} seconds. ${Math.max(0, gameState.timer)} remaining.`, true);
 
             if (gameState.timer <= 0) {
                 gameState.timer = 0;
@@ -1520,6 +1589,7 @@
             if (gameState.enemyCurrentHP < 0) gameState.enemyCurrentHP = 0;
             showFloatingDamage(amt);
             updateHealthBar();
+            announce(`Hit for ${amt}. Enemy at ${Math.max(0, gameState.enemyCurrentHP)} of ${gameState.enemyMaxHP}.`);
         }
 
         function monsterDefeated() {
@@ -1537,6 +1607,7 @@
             }
             playCombatEffect('slash-heavy');
             playSound('monster_die');
+            announce(`${gameState.currentEnemy ? gameState.currentEnemy.name : 'Enemy'} defeated.`);
             
             if (!gameState.killedBySkill) {
                 let timeGain = gameState.playerClass === 'rogue' ? 20 : 15;
@@ -1591,7 +1662,8 @@
             gameState.streak = 0;
             gameState.multiplier = 1.0;
             document.getElementById('finalScore').textContent = gameState.score;
-            document.getElementById('timeoutModal').classList.add('active');
+            announce(`Time's up. Final score ${gameState.score}.`, true);
+            openModal('timeoutModal');
         }
 
         const OPERATORS = ['+', '−', '×', '÷'];
@@ -2272,6 +2344,10 @@
             liveTotal.textContent = calc.text;
             container.appendChild(liveTotal);
 
+            announce(calc.status === 'invalid'
+                ? 'Not an exact division.'
+                : `${selectedNumbers.map((n, i) => currentNumbers[n].value + (selectedOperators[i] ? ' ' + selectedOperators[i] : '')).join(' ')} equals ${calc.value}`);
+
             const cue = document.createElement('span');
             cue.className = 'expression-cue';
             cue.textContent = selectedNumbers.length === 4
@@ -2350,6 +2426,7 @@
             // Incomplete or Invalid
             if (selectedNumbers.length !== 4 || selectedOperators.length !== 3 || result !== 24) {
                 playSound('wrong');
+                announce(`Not 24. That makes ${result === null ? 'an invalid expression' : result}.`, true);
                 document.querySelector('.game-area').classList.add('shake');
                 setTimeout(() => document.querySelector('.game-area').classList.remove('shake'), 300);
                 
@@ -2490,8 +2567,8 @@
         }
 
         function startGame() {
-            document.getElementById('modeModal').classList.remove('active');
-            document.getElementById('classModal').classList.add('active');
+            closeModal('modeModal');
+            openModal('classModal');
         }
 
         function loadPuzzle() {
@@ -2509,7 +2586,7 @@
                 
                 if (solved.length >= puzzles.length) {
                     endRun();
-                    document.getElementById('completeModal').classList.add('active');
+                    openModal('completeModal');
                     return;
                 }
                 
@@ -2711,12 +2788,12 @@
         }
 
         function nextLevel() {
-            document.getElementById('successModal').classList.remove('active');
+            closeModal('successModal');
             
             if (gameState.mode === 'campaign') {
                 if (gameState.solvedPuzzles[gameState.difficulty].length >= CAMPAIGN_PUZZLES[gameState.difficulty].length) {
                     endRun();
-                    document.getElementById('completeModal').classList.add('active');
+                    openModal('completeModal');
                     return;
                 }
             }
@@ -2737,7 +2814,7 @@
         }
 
         function retryLevel() {
-            document.getElementById('failModal').classList.remove('active');
+            closeModal('failModal');
             clearAll();
             gameState.timer = getTimerForLevel(); // Base time for a fresh retry
             gameState.maxTime = gameState.timer;
@@ -2755,11 +2832,11 @@
 
         function showModeSelect() {
             
-        document.getElementById('modeModal').classList.add('active');
-            document.getElementById('successModal').classList.remove('active');
-            document.getElementById('failModal').classList.remove('active');
-            document.getElementById('timeoutModal').classList.remove('active');
-            document.getElementById('completeModal').classList.remove('active');
+        openModal('modeModal');
+            closeModal('successModal');
+            closeModal('failModal');
+            closeModal('timeoutModal');
+            closeModal('completeModal');
         }
 
         function resetGame() {
@@ -2830,14 +2907,14 @@
         };
 
         document.getElementById('galleryBtn').onclick = () => {
-            document.getElementById('modeModal').classList.remove('active');
-            document.getElementById('galleryModal').classList.add('active');
+            closeModal('modeModal');
+            openModal('galleryModal');
             updateGallery();
         };
         
         document.getElementById('galCloseBtn').onclick = () => {
-            document.getElementById('galleryModal').classList.remove('active');
-            document.getElementById('modeModal').classList.add('active');
+            closeModal('galleryModal');
+            openModal('modeModal');
         };
         
         document.getElementById('galPrevBtn').onclick = () => {
@@ -2855,8 +2932,8 @@
         document.getElementById('campaignBtn').onclick = function() {
             gameState.mode = 'campaign';
             gameState.isPractice = false;
-            document.getElementById('modeModal').classList.remove('active');
-            document.getElementById('difficultyModal').classList.add('active');
+            closeModal('modeModal');
+            openModal('difficultyModal');
         };
         
         window.selectDifficulty = function(diff) {
@@ -2869,8 +2946,8 @@
                 gameState.solvedPuzzles[diff] = [];
             }
             gameState.currentPuzzleIndex = 0;
-            document.getElementById('difficultyModal').classList.remove('active');
-            document.getElementById('classModal').classList.add('active');
+            closeModal('difficultyModal');
+            openModal('classModal');
         };
 
         document.getElementById('endlessBtn').onclick = function() {
@@ -2959,7 +3036,7 @@
             gameState.score = 0;
             gameState.streak = 0;
             gameState.multiplier = 1.0;
-            document.getElementById('completeModal').classList.remove('active');
+            closeModal('completeModal');
             startGameWithClass(gameState.playerClass);
         };
         
@@ -2996,7 +3073,7 @@
         }
         initCampaignPuzzles();
 
-        document.getElementById('modeModal').classList.add('active');
+        openModal('modeModal');
     
 
         // --- 2D ANIMATION HOOKS ---
