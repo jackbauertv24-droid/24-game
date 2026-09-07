@@ -1248,7 +1248,8 @@
         <div class="modal-content">
             <h2>🏆 Completed!</h2>
             <p>You've completed all puzzles in this difficulty!</p>
-            <button class="modal-btn primary" id="completeBtn">Back to Menu</button>
+            <button class="modal-btn primary" id="replayBtn">Play This Difficulty Again</button>
+            <button class="modal-btn" id="completeBtn">Back to Menu</button>
         </div>
     </div>
 
@@ -1305,7 +1306,9 @@
                 gameState.skillCooldown = true;
                 const btn = document.getElementById('skillBtn');
                 if (btn) btn.style.opacity = '0.5';
-                setTimeout(() => {
+                clearTimeout(skillCooldownTimer);
+                skillCooldownTimer = setTimeout(() => {
+                    skillCooldownTimer = null;
                     gameState.skillCooldown = false;
                     if (btn) btn.style.opacity = '1';
                 }, 5000);
@@ -1315,14 +1318,7 @@
                 playCombatEffect('slash-heavy');
                 clearAll();
                 
-                if (gameState.mode === 'campaign') {
-                    if (!gameState.solvedPuzzles[gameState.difficulty].includes(gameState.currentPuzzleIndex)) {
-                        gameState.solvedPuzzles[gameState.difficulty].push(gameState.currentPuzzleIndex);
-                        localStorage.setItem('24-game-solved', JSON.stringify(gameState.solvedPuzzles));
-                    }
-                    const puzzles = CAMPAIGN_PUZZLES[gameState.difficulty];
-                    gameState.currentPuzzleIndex = (gameState.currentPuzzleIndex + 1) % puzzles.length;
-                }
+                markPuzzleSolved();
                 
                 gameState.killedBySkill = true;
                 doDamage(24);
@@ -1481,11 +1477,43 @@
             }, 1200);
         }
 
-        function gameOver() {
-            gameState.timer = 0;
+        // Every path that opens a terminal modal has to go through here. The
+        // campaign-complete branches used to just show their modal and return,
+        // leaving the countdown running underneath — so finishing all 30 puzzles
+        // was rewarded with a "Time's Up!" screen stacked under the trophy.
+        // Campaign completion is measured by solvedPuzzles.length, so pushing the
+        // same index twice would end the campaign early. Only submit() used to push,
+        // without the dedupe guard the skill path had.
+        function markPuzzleSolved() {
+            if (gameState.mode !== 'campaign') return;
+            // Practice still advances to the next board, but must not burn campaign
+            // progress — it shares mode 'campaign' and would otherwise consume it.
+            if (!gameState.isPractice) {
+                const solved = gameState.solvedPuzzles[gameState.difficulty];
+                if (!solved.includes(gameState.currentPuzzleIndex)) {
+                    solved.push(gameState.currentPuzzleIndex);
+                }
+            }
+            const puzzles = CAMPAIGN_PUZZLES[gameState.difficulty];
+            gameState.currentPuzzleIndex = (gameState.currentPuzzleIndex + 1) % puzzles.length;
+        }
+
+        function endRun() {
             gameState.started = false;
             cancelAutoSubmit();
             clearInterval(timerInterval);
+            timerInterval = null;
+            clearTimeout(skillCooldownTimer);
+            skillCooldownTimer = null;
+            gameState.skillCooldown = false;
+            gameState.killedBySkill = false;
+            const btn = document.getElementById('skillBtn');
+            if (btn) btn.style.opacity = '1';
+        }
+
+        function gameOver() {
+            endRun();
+            gameState.timer = 0;
             document.getElementById('timer').textContent = 0;
             document.getElementById('progress').style.width = '0%';
             gameState.streak = 0;
@@ -1524,6 +1552,7 @@
         let timerInterval = null;
         let currentSolution = null;
         let autoSubmitTimer = null;
+        let skillCooldownTimer = null;
 
         function cancelAutoSubmit() {
             if (autoSubmitTimer !== null) {
@@ -2329,9 +2358,7 @@
             gameState.score += points;
             updateUI();
             
-            if (gameState.mode === 'campaign') {
-                gameState.solvedPuzzles[gameState.difficulty].push(gameState.currentPuzzleIndex);
-            }
+            markPuzzleSolved();
 
             if (gameState.enemyCurrentHP <= 0) {
                 monsterDefeated();
@@ -2402,6 +2429,7 @@
                 }
                 
                 if (solved.length >= puzzles.length) {
+                    endRun();
                     document.getElementById('completeModal').classList.add('active');
                     return;
                 }
@@ -2570,6 +2598,7 @@
             
             if (gameState.mode === 'campaign') {
                 if (gameState.solvedPuzzles[gameState.difficulty].length >= CAMPAIGN_PUZZLES[gameState.difficulty].length) {
+                    endRun();
                     document.getElementById('completeModal').classList.add('active');
                     return;
                 }
@@ -2715,6 +2744,14 @@
         
         window.selectDifficulty = function(diff) {
             gameState.difficulty = diff;
+            // resetGame() deliberately carries solvedPuzzles across a return to the
+            // menu, and nothing ever cleared it — so re-entering a difficulty you had
+            // finished fired "Completed!" before a single puzzle rendered, with a page
+            // reload as the only way out. Starting that difficulty again starts it over.
+            if (gameState.solvedPuzzles[diff].length >= CAMPAIGN_PUZZLES[diff].length) {
+                gameState.solvedPuzzles[diff] = [];
+            }
+            gameState.currentPuzzleIndex = 0;
             document.getElementById('difficultyModal').classList.remove('active');
             document.getElementById('classModal').classList.add('active');
         };
@@ -2739,6 +2776,16 @@
         document.getElementById('retryBtn').onclick = retryLevel;
         document.getElementById('restartBtn').onclick = resetGame;
         document.getElementById('completeBtn').onclick = resetGame;
+        document.getElementById('replayBtn').onclick = function() {
+            gameState.solvedPuzzles[gameState.difficulty] = [];
+            gameState.currentPuzzleIndex = 0;
+            gameState.level = 1;
+            gameState.score = 0;
+            gameState.streak = 0;
+            gameState.multiplier = 1.0;
+            document.getElementById('completeModal').classList.remove('active');
+            startGameWithClass(gameState.playerClass);
+        };
         
         
         
