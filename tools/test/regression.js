@@ -23,7 +23,8 @@ setTimeout(() => {
  for (const [lvl,want] of [[1,'EASY'],[10,'EASY'],[11,'MEDIUM'],[20,'MEDIUM'],[21,'HARD'],[40,'HARD']]) {
    w.eval('gameState.level='+lvl+'; updateUI(); renderOperators();');
    const badge = doc.getElementById('difficulty').textContent;
-   const keys = [...doc.querySelectorAll('.operator-btn')].filter(b=>!b.disabled).map(b=>b.textContent);
+   // dataset.locked is the tier rule; .disabled also carries whose turn it is.
+   const keys = [...doc.querySelectorAll('.operator-btn')].filter(b=>b.dataset.locked==='0').map(b=>b.textContent);
    const ops = JSON.parse(w.eval('JSON.stringify(getAllowedOps())'));
    if (badge!==want || keys.join('')!==ops.join('')) agree = false;
  }
@@ -89,13 +90,34 @@ setTimeout(() => {
  key('Escape');    ok('X2  Escape clears', expr()==='');
  ok('X2  Undo and Clear buttons exist', !!doc.getElementById('undoBtn') && !!doc.getElementById('clearBtn'));
 
- // --- X1 auto-submit ---
+ // --- pace: no pre-submit pause ---
  w.eval('clearAll(); selectNumber(0);selectOperator("+");selectNumber(1);selectOperator("+");selectNumber(2);selectOperator("+");selectNumber(3);');
- const pending = w.eval('autoSubmitTimer') !== null;
- const sweeping = doc.getElementById('submitSweep').classList.contains('running');
+ ok('PACE  auto-submit stays snappy and shows no countdown',
+    w.eval('autoSubmitTimer')!==null && w.eval('AUTO_SUBMIT_MS')<=350 && !doc.getElementById('submitSweep'));
  w.eval('undoLastMove();');
- ok('X1  auto-submit is delayed, visible and cancellable',
-    pending && sweeping && w.eval('autoSubmitTimer')===null && w.eval('AUTO_SUBMIT_MS')>=1000);
+ ok('PACE  a pending submit is still cancellable by undoing', w.eval('autoSubmitTimer')===null);
+
+ // --- undo is the Undo button's job only ---
+ w.eval('clearAll(); selectNumber(0);');
+ const afterFirst = JSON.parse(w.eval('JSON.stringify(selectedNumbers)'));
+ w.eval('selectNumber(0);');
+ ok('UNDO  re-tapping a card in the equation does not undo',
+    JSON.stringify(JSON.parse(w.eval('JSON.stringify(selectedNumbers)')))===JSON.stringify(afterFirst));
+ ok('UNDO  a card in the equation is disabled, not a silent no-op',
+    doc.getElementById('number-0').disabled === true);
+ w.eval('selectOperator("+");');
+ w.eval('selectOperator("+");');
+ ok('UNDO  re-tapping the current operator does not pop it',
+    JSON.parse(w.eval('JSON.stringify(selectedOperators)')).length===1);
+ w.eval('selectOperator("−");');
+ ok('UNDO  a different operator does not swap the current one',
+    JSON.parse(w.eval('JSON.stringify(selectedOperators)')).join('')==='+');
+ ok('UNDO  operator keys grey out while a card is expected',
+    [...doc.querySelectorAll('#operators .operator-btn')].every(b => b.disabled));
+ w.eval('undoLastMove();');
+ ok('UNDO  the Undo button still steps back',
+    JSON.parse(w.eval('JSON.stringify(selectedOperators)')).length===0
+    && !doc.getElementById('number-0').disabled === false);
 
  // --- U2 selected state ---
  w.eval('clearAll(); selectNumber(0);');

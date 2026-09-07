@@ -424,43 +424,6 @@
             text-shadow: 0 0 20px var(--primary);
         }
 
-        /* Kept for the aria label only — cards in the equation now render .selected.
-           pointer-events stay active so tapping a card again undoes it. */
-        .number-card.used {
-            opacity: 0.35;
-            transform: translateZ(0px) translateY(8px) scale(0.97);
-            box-shadow: 0 1px 0 #0d1a24, 0 2px 5px rgba(0,0,0,0.4);
-            filter: grayscale(1);
-        }
-
-        /* Visible, cancellable countdown to the automatic submission. */
-        .submit-sweep {
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            height: 3px;
-            width: 0;
-            border-radius: 0 0 14px 14px;
-            background: linear-gradient(90deg, var(--secondary), var(--primary));
-            opacity: 0;
-        }
-
-        .submit-sweep.running {
-            animation: submitSweep var(--sweep-ms, 1100ms) linear forwards;
-        }
-
-        @keyframes submitSweep {
-            from { width: 0;    opacity: 1; }
-            to   { width: 100%; opacity: 1; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .submit-sweep.running {
-                animation: none;
-                width: 100%;
-                opacity: 1;
-            }
-        }
 
         .expression-area {
             background: rgba(15, 15, 25, 0.85);
@@ -473,9 +436,8 @@
             justify-content: center;
             box-shadow: 0 0 15px rgba(0,240,255,0.05);
             backdrop-filter: blur(4px);
-            /* anchors .submit-sweep; also no longer clickable as a whole, so no
-               pointer cursor — a stray tap used to wipe the entire equation */
-            position: relative;
+            /* no longer clickable as a whole, so no pointer cursor — a stray tap
+               used to wipe the entire equation */
             overflow: hidden;
         }
 
@@ -1185,7 +1147,6 @@
                     <div class="expression" id="expression">
                         <span class="expression-placeholder">Tap a card below to begin</span>
                     </div>
-                    <div class="submit-sweep" id="submitSweep" aria-hidden="true"></div>
                 </div>
 
                 <div class="hint-text" id="hint"></div>
@@ -1828,27 +1789,17 @@
                 clearTimeout(autoSubmitTimer);
                 autoSubmitTimer = null;
             }
-            const sweep = document.getElementById('submitSweep');
-            if (sweep) sweep.classList.remove('running');
         }
 
-        // A wrong answer costs 10 seconds, and this used to fire 350ms after the
-        // fourth card with no confirmation and no way back — a mis-tap was graded
-        // before the player could look at what they had built. The delay is now long
-        // enough to catch, visibly counting down, and any edit cancels it. Enter
-        // still submits instantly, so nobody fast is slowed down.
-        const AUTO_SUBMIT_MS = 1100;
+        // Deliberately short. A visible countdown was tried here and slowed the loop
+        // to a crawl — the pace between placing the fourth card and the next board is
+        // the game, and a safety pause on every single puzzle costs far more than the
+        // occasional mis-tap it saves.
+        const AUTO_SUBMIT_MS = 350;
 
         function scheduleAutoSubmit() {
             cancelAutoSubmit();
             if (!gameState.started || selectedNumbers.length !== 4 || selectedOperators.length !== 3) return;
-            const sweep = document.getElementById('submitSweep');
-            if (sweep) {
-                sweep.classList.remove('running');
-                void sweep.offsetWidth;
-                sweep.style.setProperty('--sweep-ms', AUTO_SUBMIT_MS + 'ms');
-                sweep.classList.add('running');
-            }
             autoSubmitTimer = setTimeout(() => {
                 autoSubmitTimer = null;
                 submit();
@@ -2274,9 +2225,10 @@
                 // while the lit .selected state sat in the stylesheet unused.
                 card.className = `number-card${num.used ? ' selected' : ''}`;
                 card.textContent = num.value;
-                card.setAttribute('role', 'button');
-                card.setAttribute('tabindex', '0');
-                card.setAttribute('aria-label', `Number ${num.value}${num.used ? ', used' : ''}`);
+                // Already in the equation means there is nothing left to do here, so
+                // say so rather than silently swallowing the tap.
+                card.disabled = num.used;
+                card.setAttribute('aria-label', `Number ${num.value}${num.used ? ', already in your equation' : ''}`);
                 card.onclick = () => selectNumber(idx);
                 card.onkeydown = event => {
                     if (event.key === 'Enter' || event.key === ' ') {
@@ -2299,36 +2251,50 @@
 
             OPERATORS.forEach(op => {
                 const btn = document.createElement('button');
-                btn.className = `operator-btn${!allowedOps.includes(op) ? ' disabled' : ''}`;
+                const locked = !allowedOps.includes(op);
+                btn.className = `operator-btn${locked ? ' disabled' : ''}`;
                 btn.textContent = op;
                 btn.setAttribute('aria-label', `Operator ${op}`);
-                btn.disabled = !allowedOps.includes(op);
-                btn.onclick = () => allowedOps.includes(op) && selectOperator(op);
+                // `locked` is the tier rule and never changes mid-puzzle; the turn
+                // rule does, and syncPadState() applies it after every step.
+                btn.dataset.locked = locked ? '1' : '0';
+                btn.disabled = locked;
+                btn.onclick = () => selectOperator(op);
                 btn.onpointerdown = () => btn.classList.add('pressing');
                 btn.onpointerup = () => btn.classList.remove('pressing');
                 btn.onpointercancel = () => btn.classList.remove('pressing');
                 btn.onpointerleave = () => btn.classList.remove('pressing');
                 container.appendChild(btn);
             });
+            syncPadState();
+        }
+
+        // The gamepad alternates: a card, then an operator, then a card. Whichever
+        // half is not the player's next move is greyed out rather than accepting a
+        // tap and doing nothing with it.
+        function syncPadState() {
+            const wantsOperator = selectedNumbers.length > selectedOperators.length;
+            const full = selectedNumbers.length >= 4 && selectedOperators.length >= 3;
+            document.querySelectorAll('#operators .operator-btn').forEach(btn => {
+                const locked = btn.dataset.locked === '1';
+                btn.disabled = locked || full || !wantsOperator;
+            });
         }
 
         function selectNumber(idx) {
             if (!gameState.started) return;
-            // Allow undoing if it's already selected
-            const isUndo = selectedNumbers.includes(idx);
-            if (!isUndo && selectedNumbers.length !== selectedOperators.length) return;
-            if (currentNumbers[idx].used && !isUndo) return;
+            // The gamepad builds; it never edits. Undo lives on the Undo button and
+            // Backspace, so a card already in the equation is inert rather than a
+            // second, hidden way to undo. (The old branch also called an undefined
+            // clearSelection(), so tapping a selected card threw a ReferenceError.)
+            if (currentNumbers[idx].used) return;
+            if (selectedNumbers.length !== selectedOperators.length) return;
+            if (selectedNumbers.length >= 4) return;
+
             playSound('select');
-            
-            if (selectedNumbers.includes(idx)) {
-                clearSelection();
-                return;
-            } else {
-                if (selectedNumbers.length < 4) {
-                    selectedNumbers.push(idx);
-                    currentNumbers[idx].used = true;
-                }
-            }
+            selectedNumbers.push(idx);
+            currentNumbers[idx].used = true;
+
             renderNumbers();
             updateExpression();
             
@@ -2365,24 +2331,15 @@
 
         function selectOperator(op) {
             if (!gameState.started) return;
+            // Same rule as the cards: build only. Tapping the current operator used to
+            // pop it and tapping a different one used to swap it — two more hidden
+            // undos competing with the Undo button.
+            if (selectedOperators.length >= selectedNumbers.length) return;
+            if (selectedOperators.length >= 3) return;
+
             playSound('operator');
-            
-            if (selectedOperators.length >= selectedNumbers.length) {
-                if (selectedOperators.length > 0) {
-                    if (selectedOperators[selectedOperators.length - 1] === op) {
-                        selectedOperators.pop();
-                    } else {
-                        selectedOperators[selectedOperators.length - 1] = op;
-                    }
-                    updateExpression();
-                }
-                return;
-            }
-            
-            if (selectedOperators.length < 3) {
-                selectedOperators.push(op);
-                updateExpression();
-            }
+            selectedOperators.push(op);
+            updateExpression();
         }
 
         function evalOperation(a, b, op) {
@@ -2451,6 +2408,7 @@
                 cue.className = 'expression-cue';
                 cue.textContent = 'Every step is worked out left to right';
                 container.appendChild(cue);
+                syncPadState();
                 return;
             }
 
@@ -2508,12 +2466,13 @@
             cue.textContent = selectedNumbers.length === 4
                 ? (calc.status === 'invalid'
                     ? 'Not an exact division — undo to fix'
-                    : 'Submitting… undo or tap a step to stop')
+                    : 'Checking…')
                 : selectedNumbers.length === selectedOperators.length
                     ? 'Next: choose a card'
                     : 'Next: choose an operation';
             container.appendChild(cue);
 
+            syncPadState();
             scheduleAutoSubmit();
         }
 
