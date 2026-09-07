@@ -706,6 +706,26 @@
 
         #skillBtn:disabled small { color: #9a95ad; }
 
+        .run-score {
+            font-size: 17px;
+        }
+
+        .run-score strong {
+            color: var(--accent);
+        }
+
+        .run-answer {
+            margin: 4px 0 14px;
+            font-size: 13px;
+            color: var(--secondary);
+            min-height: 18px;
+        }
+
+        .run-answer:empty {
+            margin: 0;
+            min-height: 0;
+        }
+
         .key-hint {
             margin-top: 8px;
             text-align: center;
@@ -1310,8 +1330,19 @@
     <div class="modal" id="timeoutModal" role="dialog" aria-modal="true" aria-labelledby="timeoutTitle">
         <div class="modal-content">
             <h2 id="timeoutTitle">⏰ Time's Up!</h2>
-            <p>Final Score: <span id="finalScore">0</span></p>
-            <button class="modal-btn primary" id="restartBtn">Play Again</button>
+            <p class="run-score">Final Score: <strong id="finalScore">0</strong></p>
+
+            <div class="stats-panel open" aria-label="This run">
+                <div class="stat-card"><strong id="runLevel">1</strong><span>Level reached</span></div>
+                <div class="stat-card"><strong id="runSolved">0</strong><span>Solved</span></div>
+                <div class="stat-card"><strong id="runAccuracy">0%</strong><span>Accuracy</span></div>
+                <div class="stat-card"><strong id="runStreak">0</strong><span>Best streak</span></div>
+            </div>
+
+            <p class="run-answer" id="runAnswer"></p>
+
+            <button class="modal-btn primary" id="againBtn">Try Again</button>
+            <button class="modal-btn" id="restartBtn">Back to Menu</button>
         </div>
     </div>
 
@@ -1336,6 +1367,9 @@
             
             updateSkillButton();
 
+            gameState.runSolved = 0;
+            gameState.runAttempts = 0;
+            gameState.runBestStreak = 0;
             gameState.started = true;
             gameState.timer = getTimerForLevel();
             gameState.maxTime = gameState.timer;
@@ -1358,6 +1392,14 @@
         function describeSkill() {
             const isBoss = (gameState.level % 5 === 0) && !gameState.isPractice;
             const free = gameState.isPractice;
+            // Practice mode advertises "unlimited hints" on the menu, but hints were
+            // Wizard-only and cost 20s — a currency practice mode does not have.
+            if (free) {
+                const shown = document.getElementById('hint').classList.contains('visible');
+                const solvable = currentSolution && /=/.test(currentSolution);
+                if (!solvable) return { label: '💡 Show Answer', note: 'no hint here', usable: false };
+                return { label: '💡 Show Answer', note: shown ? 'showing' : 'free, unlimited', usable: !shown };
+            }
             switch (gameState.playerClass) {
                 case 'warrior':
                     if (isBoss) return { label: '🪓 Intimidate', note: 'bosses resist', usable: false };
@@ -1397,6 +1439,11 @@
         window.useSkill = function() {
             if (gameState.enemyCurrentHP <= 0) return;
             if (!gameState.started) return;
+            if (gameState.isPractice) {
+                if (currentSolution && /=/.test(currentSolution)) showHint();
+                else showFloatingText('No hint for this board!', '#ffaa00', 'monsterArea');
+                return;
+            }
             const cls = gameState.playerClass;
             const isBoss = (gameState.level % 5 === 0);
             
@@ -1707,8 +1754,23 @@
             document.getElementById('progress').style.width = '0%';
             gameState.streak = 0;
             gameState.multiplier = 1.0;
+            // A bare score is the least useful thing to show someone at the moment a
+            // puzzle game kills them. Report the run, and the answer they were hunting.
             document.getElementById('finalScore').textContent = gameState.score;
-            announce(`Time's up. Final score ${gameState.score}.`, true);
+            document.getElementById('runLevel').textContent = gameState.level;
+            document.getElementById('runSolved').textContent = gameState.runSolved;
+            document.getElementById('runAccuracy').textContent = gameState.runAttempts > 0
+                ? Math.round((gameState.runSolved / gameState.runAttempts) * 100) + '%'
+                : '—';
+            document.getElementById('runStreak').textContent = gameState.runBestStreak;
+
+            const answerEl = document.getElementById('runAnswer');
+            const board = currentNumbers.map(n => n.value).join(', ');
+            answerEl.textContent = currentSolution && /=/.test(currentSolution)
+                ? `That board (${board}) was ${currentSolution}`
+                : '';
+
+            announce(`Time's up. Final score ${gameState.score}. Reached level ${gameState.level}, solved ${gameState.runSolved}.`, true);
             openModal('timeoutModal');
         }
 
@@ -1733,7 +1795,10 @@
             playedCount: 0,
             bestStreak: 0,
             skillUses: { level: 0, boss: 0 },
-            playerClass: 'warrior'
+            playerClass: 'warrior',
+            runSolved: 0,
+            runAttempts: 0,
+            runBestStreak: 0
         };
 
         let currentNumbers = [];
@@ -2499,6 +2564,7 @@
                 // Time is Health penalty
                 if (!gameState.isPractice) {
                     gameState.playedCount++;
+                    gameState.runAttempts++;
                     saveStats();
                 }
                 let penalty = -10;
@@ -2572,7 +2638,10 @@
             if (!gameState.isPractice) {
                 gameState.playedCount++;
                 gameState.solvedCount++;
+                gameState.runAttempts++;
+                gameState.runSolved++;
                 gameState.bestStreak = Math.max(gameState.bestStreak, gameState.streak);
+                gameState.runBestStreak = Math.max(gameState.runBestStreak, gameState.streak);
                 saveStats();
             }
             updateMultiplier();
@@ -2932,7 +3001,10 @@
                 started: false,
                 solvedCount: preservedStats.solvedCount,
                 playedCount: preservedStats.playedCount,
-                bestStreak: preservedStats.bestStreak
+                bestStreak: preservedStats.bestStreak,
+                runSolved: 0,
+                runAttempts: 0,
+                runBestStreak: 0
             };
             updateStats();
             showModeSelect();
@@ -3086,6 +3158,20 @@
         });
 
         document.getElementById('restartBtn').onclick = resetGame;
+        document.getElementById('againBtn').onclick = function() {
+            closeModal('timeoutModal');
+            gameState.level = 1;
+            gameState.score = 0;
+            gameState.streak = 0;
+            gameState.multiplier = 1.0;
+            gameState.skillUses = { level: 0, boss: 0 };
+            if (gameState.mode === 'campaign') {
+                gameState.solvedPuzzles[gameState.difficulty] = [];
+                gameState.currentPuzzleIndex = 0;
+            }
+            startGameWithClass(gameState.playerClass);
+        };
+
         document.getElementById('completeBtn').onclick = resetGame;
         document.getElementById('replayBtn').onclick = function() {
             gameState.solvedPuzzles[gameState.difficulty] = [];
