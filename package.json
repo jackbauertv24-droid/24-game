@@ -2,7 +2,8 @@
   "name": "24-game-rpg",
   "private": true,
   "scripts": {
-    "test": "node tools/test/regression.js"
+    "test": "node tools/test/regression.js && node tools/test/audio.js",
+    "test:audio": "node tools/test/audio.js"
   },
   "devDependencies": {
     "jimp": "^0.22.10",
