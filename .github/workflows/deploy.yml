@@ -27,10 +27,23 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      # Publish only what the game needs. This previously uploaded path: '.', which
+      # served the whole repository at the game's URL — the archived build scripts,
+      # package-lock.json and an unrelated daemon script — and, before node_modules
+      # was untracked, the entire dependency tree with it.
+      - name: Stage site
+        run: |
+          mkdir -p _site
+          cp index.html README.md _site/
+          cp -r assets _site/
+          echo "Publishing:"
+          find _site -maxdepth 1 -mindepth 1 -printf '  %f\n'
+          du -sh _site
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
