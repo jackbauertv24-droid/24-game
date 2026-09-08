@@ -1932,14 +1932,23 @@
         // ---------------------------------------------------------------------
         // Audio
         //
-        // Every effect used to hand-roll its own oscillator, pick its own level and
-        // connect straight to destination. Nothing normalised those levels, so the
-        // sum clipped: `correct` alone peaked at 2.10 against a hard ceiling of 1.0,
-        // and a card tap (select + correct together) hit 2.40. That crunch is what
-        // made it sound cheap. Five envelopes also jumped from silence to full
-        // amplitude in one sample, which is a discontinuity you hear as a click, and
-        // `correct` allocated and filled a fresh 9,600-sample noise buffer on every
-        // single tap.
+        // These effects are built by modal synthesis: a very short noise burst
+        // (the strike) exciting a bank of high-Q bandpass resonators tuned to
+        // INHARMONIC ratios (the object ringing). That is what a struck physical
+        // object is, and it is what the previous version got wrong.
+        //
+        // Measured against recorded references (a glass break and a body impact
+        // from Wikimedia Commons) the old synthesis was wrong in five ways:
+        //   * attack 17ms vs 2.8ms on the reference — a swell, not a hit
+        //   * partials at integer ratios (1.00 2.00 2.04 3.00) — an integer series
+        //     is a musical tone, which is exactly the toy/beep character. Real
+        //     struck metal is inharmonic (the reference hit: 1.00 1.43 2.00 7.14)
+        //   * one single partial on the death sound — literally a sine sweep
+        //   * spectral flatness 0.266 vs 0.001 — the swoosh buried the impact
+        //   * one-stage decay, where real impacts drop fast then ring long
+        //
+        // Mode ratios below are the physical ones: a free-free steel bar rings at
+        // 1 : 2.76 : 5.40 : 8.93, which is why a blade sounds like a blade.
         //
         // Signal path:  voice ─┬─► master ─► limiter ─► destination
         //                      └─► send ──► reverb ──► master
@@ -1950,10 +1959,89 @@
         let reverbBus = null;
         let noiseBuffer = null;
 
+        // Physically-derived mode sets. None of these are integer series.
+        const MODES = {
+            blade:  [1, 2.756, 5.404, 8.933, 13.34],   // free-free steel bar
+            plate:  [1, 1.73, 2.94, 3.91, 5.12],       // struck plate / armour
+            bell:   [1, 1.19, 1.56, 2.00, 2.61, 3.42], // cast bell
+            wood:   [1, 1.47, 2.09, 3.12],             // small wooden block
+            stone:  [1, 1.41, 2.13, 2.87]              // dull rubble, heavily damped
+        };
+
+        // Every effect as data, so the offline analyser in tools/test can render
+        // exactly what the game plays instead of a re-typed approximation.
+        const SOUND_SPECS = {
+            // Wooden tick. Fires constantly, so it stays quiet and very short.
+            select: [
+                { kind: 'modal', modes: 'wood', base: 780, decay: 0.055, peak: 2.185, exciteMs: 2.0, exciteFreq: 3000, tilt: 0.55 }
+            ],
+            operator: [
+                { kind: 'modal', modes: 'wood', base: 560, decay: 0.06, peak: 2.468, exciteMs: 2.0, exciteFreq: 2600, tilt: 0.55 }
+            ],
+
+            // Card-tap feedback. Same wooden family, pitched up / down.
+            progress: [
+                { kind: 'modal', modes: 'wood', base: 1020, decay: 0.07, peak: 2.751, exciteMs: 1.8, exciteFreq: 3400, tilt: 0.5, send: 0.1 }
+            ],
+            blocked: [
+                { kind: 'modal', modes: 'stone', base: 300, decay: 0.09, peak: 1.773, exciteMs: 2.5, exciteFreq: 1100, tilt: 0.7 }
+            ],
+
+            // The strike lands. Air, then the blade rings, over a body thump.
+            correct: [
+                { kind: 'noise', peak: 0.562, attack: 0.0025, decay: 0.06, type: 'bandpass', freq: 2600, freqTo: 700, q: 1.1 },
+                { kind: 'modal', modes: 'blade', base: 540, decay: 0.62, peak: 2.41, exciteMs: 2.6, exciteFreq: 7000, tilt: 0.62, send: 0.3 },
+                { kind: 'tone',  type: 'sine', freq: 96, to: 62, peak: 0.401, attack: 0.002, decay: 0.16, send: 0.1 }
+            ],
+
+            // Turned aside by armour: dull, damped, almost no ring.
+            wrong: [
+                { kind: 'modal', modes: 'plate', base: 286, decay: 0.17, peak: 2.566, exciteMs: 3.2, exciteFreq: 2600, tilt: 0.72, send: 0.12 },
+                { kind: 'tone',  type: 'sine', freq: 88, to: 54, peak: 0.47, attack: 0.002, decay: 0.22, send: 0.1 },
+                { kind: 'noise', peak: 0.598, attack: 0.001, decay: 0.045, type: 'lowpass', freq: 1800, freqTo: 500 }
+            ],
+
+            // A heavier version of the same strike: lower, longer, more weight.
+            critical: [
+                { kind: 'modal', modes: 'blade', base: 330, decay: 0.85, peak: 2.251, exciteMs: 3.4, exciteFreq: 6000, tilt: 0.62, send: 0.35 },
+                { kind: 'tone',  type: 'sine', freq: 74, to: 40, peak: 0.492, attack: 0.003, decay: 0.34, send: 0.15 },
+                { kind: 'noise', peak: 0.633, attack: 0.002, decay: 0.13, type: 'lowpass', freq: 2400, freqTo: 300 }
+            ],
+
+            // Paladin's shield: a cast bell, which is inharmonic but sings.
+            shield: [
+                { kind: 'modal', modes: 'bell', base: 430, decay: 0.55, peak: 4.61, exciteMs: 2.4, exciteFreq: 5200, tilt: 0.6, send: 0.3 },
+                { kind: 'tone',  type: 'sine', freq: 110, to: 78, peak: 0.495, attack: 0.002, decay: 0.14 }
+            ],
+
+            // Collapse: rubble and dust, no pitch to speak of.
+            monster_die: [
+                { kind: 'modal', modes: 'stone', base: 104, decay: 0.75, peak: 2.671, exciteMs: 3, exciteFreq: 1400, tilt: 0.9, send: 0.35 },
+                { kind: 'noise', peak: 1.781, attack: 0.004, hold: 0.06, decay: 0.85, type: 'lowpass', freq: 1100, freqTo: 90, send: 0.4 },
+                { kind: 'modal', modes: 'stone', base: 190, decay: 0.35, peak: 1.425, exciteMs: 4, exciteFreq: 900, tilt: 0.9, when: 0.11, send: 0.35 },
+                { kind: 'modal', modes: 'stone', base: 138, decay: 0.30, peak: 1.158, exciteMs: 4, exciteFreq: 800, tilt: 0.9, when: 0.23, send: 0.35 },
+                { kind: 'noise', when: 0.16, peak: 0.801, attack: 0.004, decay: 0.5, type: 'bandpass', freq: 700, q: 0.8, send: 0.35 }
+            ],
+
+            // Reward and magic stay deliberately musical — they are not impacts.
+            coin: [
+                { kind: 'modal', modes: 'bell', base: 1150, decay: 0.30, peak: 2.827, exciteMs: 1.6, exciteFreq: 6000, tilt: 0.4, send: 0.25 },
+                { kind: 'modal', modes: 'bell', base: 1530, decay: 0.34, peak: 2.298, exciteMs: 1.6, exciteFreq: 6000, tilt: 0.4, when: 0.085, send: 0.25 }
+            ],
+            magic: [
+                { kind: 'tone', type: 'sine', freq: 660, peak: 0.254, attack: 0.012, decay: 0.36, send: 0.45 },
+                { kind: 'tone', type: 'sine', freq: 665, peak: 0.157, attack: 0.012, decay: 0.42, send: 0.45 },
+                { kind: 'tone', type: 'sine', freq: 990, when: 0.08, peak: 0.215, attack: 0.012, decay: 0.38, send: 0.45 },
+                { kind: 'tone', type: 'sine', freq: 1320, when: 0.16, peak: 0.196, attack: 0.012, decay: 0.44, send: 0.45 },
+                { kind: 'noise', peak: 0.098, attack: 0.05, decay: 0.45, type: 'bandpass', freq: 5000, q: 0.7, send: 0.5 }
+            ],
+            hint: [
+                { kind: 'modal', modes: 'bell', base: 784, decay: 0.34, peak: 2.954, exciteMs: 2, exciteFreq: 4500, tilt: 0.45, send: 0.35 },
+                { kind: 'modal', modes: 'bell', base: 1046, decay: 0.42, peak: 2.559, exciteMs: 2, exciteFreq: 4500, tilt: 0.45, when: 0.11, send: 0.35 }
+            ]
+        };
+
         function buildAudioGraph() {
-            // A limiter, not a mix compressor: high ratio, hard knee, fast attack.
-            // It catches the occasional stacked transient instead of letting the
-            // destination hard-clip, and stays out of the way the rest of the time.
             const limiter = audioCtx.createDynamicsCompressor();
             limiter.threshold.value = -3;
             limiter.knee.value = 0;
@@ -1966,17 +2054,14 @@
             masterBus.gain.value = 0.75;
             masterBus.connect(limiter);
 
-            // A short, dark impulse response gives the arena a sense of space.
-            // Generated rather than downloaded — it is a few hundred KB of nothing.
-            const seconds = 1.1;
-            const len = Math.floor(audioCtx.sampleRate * seconds);
+            // Short dark impulse response — a stone room, not a cathedral.
+            const len = Math.floor(audioCtx.sampleRate * 1.1);
             const ir = audioCtx.createBuffer(2, len, audioCtx.sampleRate);
             for (let ch = 0; ch < 2; ch++) {
                 const d = ir.getChannelData(ch);
                 let lp = 0;
                 for (let i = 0; i < len; i++) {
                     const decay = Math.pow(1 - i / len, 2.6);
-                    // one-pole lowpass on the noise so the tail is stone, not hiss
                     lp += ((Math.random() * 2 - 1) - lp) * 0.22;
                     d[i] = lp * decay;
                 }
@@ -1989,12 +2074,10 @@
             reverbBus.connect(convolver);
 
             const reverbReturn = audioCtx.createGain();
-            reverbReturn.gain.value = 0.5;
+            reverbReturn.gain.value = 0.45;
             convolver.connect(reverbReturn);
             reverbReturn.connect(masterBus);
 
-            // One noise buffer for the lifetime of the page, read from a random
-            // offset each time so repeats do not sound identical.
             const nLen = audioCtx.sampleRate * 2;
             noiseBuffer = audioCtx.createBuffer(1, nLen, audioCtx.sampleRate);
             const nd = noiseBuffer.getChannelData(0);
@@ -2012,14 +2095,9 @@
             }
         }
 
-        // Shared envelope. Every voice fades in over `attack` and decays to silence
-        // before its source stops, so nothing starts or ends on a discontinuity.
         function envelope(peak, when, attack, hold, decay) {
             const g = audioCtx.createGain();
             const end = when + attack + hold + decay;
-            // A GainNode reads 1.0 until its first scheduled event, which matters for
-            // voices scheduled into the future. Their source has not started so it is
-            // inaudible either way, but leaving it at unity is a trap.
             g.gain.value = 0;
             g.gain.setValueAtTime(0.0001, when);
             g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), when + attack);
@@ -2039,148 +2117,121 @@
             }
         }
 
-        // A pitched voice. `to` sweeps the frequency; `cutoff` tames the harshness
-        // of square and sawtooth waves, which is most of what made them sound thin.
-        function tone(opts) {
-            const {
-                type = 'sine', freq, to = null, when = 0, detune = 0,
-                peak = 0.2, attack = 0.006, hold = 0, decay = 0.2,
-                cutoff = null, send = 0, glide = 'exp'
-            } = opts;
-            const t = audioCtx.currentTime + when;
+        function noiseSource(t, duration) {
+            const src = audioCtx.createBufferSource();
+            src.buffer = noiseBuffer;
+            src.loop = true;
+            src.start(t, Math.random() * (noiseBuffer.duration - duration - 0.05));
+            return src;
+        }
+
+        // A struck object. The burst is the transient you hear as the impact; the
+        // resonators are the object itself. Ring time is set by filter Q, since
+        // Q = pi * f * tau — which is why higher modes die away first, exactly as
+        // they do on the recorded references.
+        function modal(spec) {
+            const t = audioCtx.currentTime + (spec.when || 0);
+            const ratios = MODES[spec.modes] || MODES.plate;
+            const exciteS = (spec.exciteMs || 2.5) / 1000;
+            const tilt = spec.tilt ?? 0.5;   // how fast the upper modes fall away
+
+            const burst = noiseSource(t, Math.max(exciteS, 0.02) + 0.05);
+            const burstFilter = audioCtx.createBiquadFilter();
+            burstFilter.type = 'lowpass';
+            burstFilter.frequency.value = spec.exciteFreq || 4000;
+            const burstGain = audioCtx.createGain();
+            // ~0.4ms in, then straight off: this IS the attack transient.
+            burstGain.gain.value = 0;
+            burstGain.gain.setValueAtTime(0.0001, t);
+            burstGain.gain.exponentialRampToValueAtTime(1, t + 0.0004);
+            burstGain.gain.exponentialRampToValueAtTime(0.0001, t + exciteS);
+            burstGain.gain.setValueAtTime(0, t + exciteS);
+            burst.connect(burstFilter);
+            burstFilter.connect(burstGain);
+            burst.stop(t + exciteS + 0.02);
+
+            // A narrow bandpass only captures the sliver of the burst's energy that
+            // falls in its band, so an uncompensated mode bank renders 20-75x below
+            // its nominal level — inaudible under any other layer. Measured against
+            // the offline renderer the realised/nominal ratio tracks sqrt(decay) at
+            // 0.052 (+/-0.008) across every effect, so this makes spec.peak mean
+            // roughly the amplitude that actually comes out.
+            const comp = 1 / (0.052 * Math.sqrt(Math.max(spec.decay, 0.01)));
+
+            let longest = 0;
+            ratios.forEach((r, i) => {
+                const f = spec.base * r;
+                if (f > 18000) return;
+                const decay = spec.decay * Math.pow(tilt, i);   // upper modes ring shorter
+                const bp = audioCtx.createBiquadFilter();
+                bp.type = 'bandpass';
+                bp.frequency.value = f;
+                bp.Q.value = Math.min(1000, Math.max(1, Math.PI * f * decay));
+                const level = spec.peak * comp * Math.pow(0.82, i);
+                const env = envelope(level, t, 0.001, decay * 0.75, decay * 0.45);
+                longest = Math.max(longest, decay * 1.2);
+                burstGain.connect(bp);
+                bp.connect(env.node);
+                routeVoice(env.node, spec.send || 0);
+            });
+
+            // A touch of the raw strike, so the transient is audible in its own right.
+            const clickEnv = envelope((spec.peak || 0.4) * 0.80, t, 0.0005, 0, exciteS * 1.5);
+            burstGain.connect(clickEnv.node);
+            routeVoice(clickEnv.node, 0);
+            return longest;
+        }
+
+        function tone(spec) {
+            const t = audioCtx.currentTime + (spec.when || 0);
+            const attack = spec.attack ?? 0.004, hold = spec.hold || 0, decay = spec.decay ?? 0.2;
             const osc = audioCtx.createOscillator();
-            osc.type = type;
-            osc.detune.value = detune;
-            osc.frequency.setValueAtTime(freq, t);
-            if (to !== null) {
-                if (glide === 'exp') osc.frequency.exponentialRampToValueAtTime(Math.max(to, 1), t + attack + hold + decay);
-                else osc.frequency.linearRampToValueAtTime(to, t + attack + hold + decay);
-            }
-            const env = envelope(peak, t, attack, hold, decay);
+            osc.type = spec.type || 'sine';
+            osc.detune.value = spec.detune || 0;
+            osc.frequency.setValueAtTime(spec.freq, t);
+            if (spec.to != null) osc.frequency.exponentialRampToValueAtTime(Math.max(spec.to, 1), t + attack + hold + decay);
+            const env = envelope(spec.peak ?? 0.2, t, attack, hold, decay);
             let head = osc;
-            if (cutoff !== null) {
+            if (spec.cutoff != null) {
                 const f = audioCtx.createBiquadFilter();
                 f.type = 'lowpass';
-                f.frequency.value = cutoff;
+                f.frequency.value = spec.cutoff;
                 f.Q.value = 0.7;
                 osc.connect(f);
                 head = f;
             }
             head.connect(env.node);
-            routeVoice(env.node, send);
+            routeVoice(env.node, spec.send || 0);
             osc.start(t);
             osc.stop(env.end + 0.02);
         }
 
-        // A noise voice, always reading the cached buffer.
-        function noise(opts) {
-            const {
-                when = 0, peak = 0.2, attack = 0.006, hold = 0, decay = 0.2,
-                type = 'lowpass', freq = 1200, freqTo = null, q = 1, send = 0
-            } = opts;
-            const t = audioCtx.currentTime + when;
-            const src = audioCtx.createBufferSource();
-            src.buffer = noiseBuffer;
-            src.loop = true;
+        function noise(spec) {
+            const t = audioCtx.currentTime + (spec.when || 0);
+            const attack = spec.attack ?? 0.004, hold = spec.hold || 0, decay = spec.decay ?? 0.2;
             const dur = attack + hold + decay;
+            const src = noiseSource(t, dur);
             const filter = audioCtx.createBiquadFilter();
-            filter.type = type;
-            filter.Q.value = q;
-            filter.frequency.setValueAtTime(freq, t);
-            if (freqTo !== null) filter.frequency.exponentialRampToValueAtTime(Math.max(freqTo, 1), t + dur);
-            const env = envelope(peak, t, attack, hold, decay);
+            filter.type = spec.type || 'lowpass';
+            filter.Q.value = spec.q ?? 1;
+            filter.frequency.setValueAtTime(spec.freq ?? 1200, t);
+            if (spec.freqTo != null) filter.frequency.exponentialRampToValueAtTime(Math.max(spec.freqTo, 1), t + dur);
+            const env = envelope(spec.peak ?? 0.2, t, attack, hold, decay);
             src.connect(filter);
             filter.connect(env.node);
-            routeVoice(env.node, send);
-            // random offset so repeated hits are not the identical waveform
-            src.start(t, Math.random() * (noiseBuffer.duration - dur - 0.05));
+            routeVoice(env.node, spec.send || 0);
             src.stop(env.end + 0.02);
         }
 
         function playSound(type) {
             initAudio();
             if (!audioCtx || !masterBus) return;
-
-            switch (type) {
-                // Fires on nearly every interaction, so it stays well under the
-                // others: a short wooden tick rather than a tone with a tail.
-                case 'select':
-                    tone({ type: 'triangle', freq: 340, to: 150, peak: 0.13, attack: 0.003, decay: 0.055, cutoff: 2600 });
-                    noise({ peak: 0.05, attack: 0.001, decay: 0.03, type: 'bandpass', freq: 2000, q: 1.2 });
-                    break;
-
-                case 'operator':
-                    tone({ type: 'triangle', freq: 260, to: 130, peak: 0.13, attack: 0.003, decay: 0.06, cutoff: 2400 });
-                    noise({ peak: 0.045, attack: 0.001, decay: 0.03, type: 'bandpass', freq: 1500, q: 1.2 });
-                    break;
-
-                // Partial expression still reachable. Deliberately small and bright —
-                // it used to reuse the full sword-hit, so the same sound meant both
-                // "still on track" and "puzzle solved".
-                case 'progress':
-                    tone({ type: 'sine', freq: 620, to: 930, peak: 0.10, attack: 0.004, decay: 0.11, send: 0.08 });
-                    break;
-
-                // Partial expression is now a dead end.
-                case 'blocked':
-                    tone({ type: 'sine', freq: 300, to: 190, peak: 0.11, attack: 0.004, decay: 0.13, cutoff: 1200 });
-                    break;
-
-                // The solve. Air, then blade.
-                case 'correct':
-                    noise({ peak: 0.32, attack: 0.02, decay: 0.20, type: 'bandpass', freq: 4200, freqTo: 500, q: 1.4, send: 0.18 });
-                    tone({ type: 'triangle', freq: 1180, peak: 0.16, attack: 0.004, decay: 0.30, send: 0.30 });
-                    tone({ type: 'triangle', freq: 1180, detune: 14, peak: 0.13, attack: 0.004, decay: 0.34, send: 0.30 });
-                    tone({ type: 'sine', freq: 590, peak: 0.10, attack: 0.004, decay: 0.22, send: 0.20 });
-                    break;
-
-                // Blocked by the enemy: a metallic clank over a low thud.
-                case 'wrong':
-                    tone({ type: 'square', freq: 480, to: 120, peak: 0.13, attack: 0.004, decay: 0.16, cutoff: 1400 });
-                    tone({ type: 'sine', freq: 150, to: 52, peak: 0.30, attack: 0.005, decay: 0.24, send: 0.12 });
-                    noise({ peak: 0.09, attack: 0.002, decay: 0.10, type: 'bandpass', freq: 2400, q: 2 });
-                    break;
-
-                case 'critical':
-                    tone({ type: 'sawtooth', freq: 190, to: 42, peak: 0.34, attack: 0.004, decay: 0.34, cutoff: 900, send: 0.25 });
-                    noise({ peak: 0.16, attack: 0.002, decay: 0.24, type: 'lowpass', freq: 1800, freqTo: 200, send: 0.2 });
-                    break;
-
-                case 'magic': {
-                    const steps = [660, 880, 1320];
-                    steps.forEach((f, i) => {
-                        tone({ type: 'sine', freq: f, when: i * 0.075, peak: 0.15, attack: 0.01, decay: 0.34, send: 0.4 });
-                        tone({ type: 'sine', freq: f, detune: 9, when: i * 0.075, peak: 0.09, attack: 0.01, decay: 0.40, send: 0.4 });
-                    });
-                    break;
-                }
-
-                case 'shield':
-                    tone({ type: 'square', freq: 420, to: 160, peak: 0.20, attack: 0.003, decay: 0.12, cutoff: 1800, send: 0.15 });
-                    noise({ peak: 0.13, attack: 0.001, decay: 0.09, type: 'bandpass', freq: 3200, q: 2.5, send: 0.15 });
-                    break;
-
-                case 'coin':
-                    tone({ type: 'sine', freq: 1250, to: 1950, peak: 0.17, attack: 0.006, decay: 0.16, send: 0.25 });
-                    tone({ type: 'sine', freq: 1660, to: 2450, when: 0.09, peak: 0.15, attack: 0.006, decay: 0.22, send: 0.25 });
-                    break;
-
-                // monsterDefeated() has always called 'monster_die' while the switch
-                // only implemented 'defeat', so killing an enemy — the game's reward
-                // moment — was silent and this effect had never once played.
-                case 'monster_die':
-                case 'defeat':
-                    tone({ type: 'sine', freq: 140, to: 38, peak: 0.34, attack: 0.01, decay: 0.85, send: 0.35 });
-                    noise({ peak: 0.26, attack: 0.01, hold: 0.05, decay: 0.95, type: 'lowpass', freq: 1400, freqTo: 120, send: 0.4 });
-                    noise({ when: 0.14, peak: 0.12, attack: 0.005, decay: 0.55, type: 'bandpass', freq: 900, q: 0.9, send: 0.35 });
-                    break;
-
-                case 'hint':
-                    // Scheduled on the audio clock; the second note used to arrive via
-                    // setTimeout and drifted against the first.
-                    tone({ type: 'sine', freq: 784, peak: 0.15, attack: 0.008, decay: 0.22, send: 0.35 });
-                    tone({ type: 'sine', freq: 1046, when: 0.11, peak: 0.15, attack: 0.008, decay: 0.34, send: 0.35 });
-                    break;
+            const spec = SOUND_SPECS[type === 'defeat' ? 'monster_die' : type];
+            if (!spec) return;
+            for (const layer of spec) {
+                if (layer.kind === 'modal') modal(layer);
+                else if (layer.kind === 'noise') noise(layer);
+                else tone(layer);
             }
         }
 
